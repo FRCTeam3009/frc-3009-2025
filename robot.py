@@ -6,53 +6,74 @@
 #
 
 import wpilib
-import wpilib.drive
+import commands2
+import typing
+
+from robotcontainer import RobotContainer
 
 
-class MyRobot(wpilib.TimedRobot):
-    def robotInit(self):
+class MyRobot(commands2.TimedCommandRobot):
+    """
+    Command v2 robots are encouraged to inherit from TimedCommandRobot, which
+    has an implementation of robotPeriodic which runs the scheduler for you
+    """
+
+    autonomousCommand: typing.Optional[commands2.Command] = None
+
+    def robotInit(self) -> None:
         """
-        This function is called upon program startup and
-        should be used for any initialization code.
+        This function is run when the robot is first started up and should be used for any
+        initialization code.
         """
-        self.leftDrive = wpilib.PWMSparkMax(0)
-        self.rightDrive = wpilib.PWMSparkMax(1)
-        self.robotDrive = wpilib.drive.DifferentialDrive(
-            self.leftDrive, self.rightDrive
-        )
-        self.controller = wpilib.XboxController(0)
-        self.timer = wpilib.Timer()
 
-        # We need to invert one side of the drivetrain so that positive voltages
-        # result in both sides moving forward. Depending on how your robot's
-        # gearbox is constructed, you might have to invert the left side instead.
-        self.rightDrive.setInverted(True)
+        # Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+        # autonomous chooser on the dashboard.
+        self.container = RobotContainer()
 
-    def autonomousInit(self):
-        """This function is run once each time the robot enters autonomous mode."""
-        self.timer.restart()
+    def robotPeriodic(self) -> None:
+        """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
+        that you want ran during disabled, autonomous, teleoperated and test.
 
-    def autonomousPeriodic(self):
-        """This function is called periodically during autonomous."""
+        This runs after the mode specific periodic functions, but before LiveWindow and
+        SmartDashboard integrated updating."""
 
-        # Drive for two seconds
-        if self.timer.get() < 2.0:
-            # Drive forwards half speed, make sure to turn input squaring off
-            self.robotDrive.arcadeDrive(0.5, 0, squareInputs=False)
-        else:
-            self.robotDrive.stopMotor()  # Stop robot
+        # Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
+        # commands, running already-scheduled commands, removing finished or interrupted commands,
+        # and running subsystem periodic() methods.  This must be called from the robot's periodic
+        # block in order for anything in the Command-based framework to work.
+        commands2.CommandScheduler.getInstance().run()
 
-    def teleopInit(self):
-        """This function is called once each time the robot enters teleoperated mode."""
+    def disabledInit(self) -> None:
+        """This function is called once each time the robot enters Disabled mode."""
+        pass
 
-    def teleopPeriodic(self):
-        """This function is called periodically during teleoperated mode."""
-        self.robotDrive.arcadeDrive(
-            -self.controller.getLeftY(), -self.controller.getRightX()
-        )
+    def disabledPeriodic(self) -> None:
+        """This function is called periodically when disabled"""
+        pass
 
-    def testInit(self):
-        """This function is called once each time the robot enters test mode."""
+    def autonomousInit(self) -> None:
+        """This autonomous runs the autonomous command selected by your RobotContainer class."""
+        self.autonomousCommand = self.container.getAutonomousCommand()
 
-    def testPeriodic(self):
-        """This function is called periodically during test mode."""
+        if self.autonomousCommand:
+            self.autonomousCommand.schedule()
+
+    def autonomousPeriodic(self) -> None:
+        """This function is called periodically during autonomous"""
+        pass
+
+    def teleopInit(self) -> None:
+        # This makes sure that the autonomous stops running when
+        # teleop starts running. If you want the autonomous to
+        # continue until interrupted by another command, remove
+        # this line or comment it out.
+        if self.autonomousCommand:
+            self.autonomousCommand.cancel()
+
+    def teleopPeriodic(self) -> None:
+        """This function is called periodically during operator control"""
+        pass
+
+    def testInit(self) -> None:
+        # Cancels all running commands at the start of test mode
+        commands2.CommandScheduler.getInstance().cancelAll()

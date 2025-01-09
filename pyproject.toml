@@ -4,4 +4,7 @@ robotpy_version = "2025.1.1.1"
 
 robotpy_extras = [
     "all",
+    "apriltag",
+    "commands2",
+    "pathplannerlib",
 ]
