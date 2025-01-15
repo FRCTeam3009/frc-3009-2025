@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 *.dat
+
+# Python FRC simulator output
+logs
+simgui*.json
