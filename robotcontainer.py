@@ -11,6 +11,7 @@ from commands2.sysid import SysIdRoutine
 
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
+import subsystems.coral_arm
 
 from pathplannerlib.auto import AutoBuilder
 from phoenix6 import swerve
@@ -60,6 +61,8 @@ class RobotContainer:
         self._joystick = commands2.button.CommandXboxController(0)
 
         self.drivetrain = TunerConstants.create_drivetrain()
+
+        self.coral_arm = subsystems.coral_arm.CoralArm()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
@@ -129,6 +132,13 @@ class RobotContainer:
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
 
+        self._joystick.x().whileTrue(
+            self.coral_arm.bicep_arm.move_command(0.1)
+        )
+        self._joystick.y().whileTrue(
+            self.coral_arm.bicep_arm.move_command(-0.1)
+        )
+
         # reset the field-centric heading on left bumper press
         self._joystick.leftBumper().onTrue(
             self.drivetrain.runOnce(lambda: self.drivetrain.seed_field_centric())
@@ -138,9 +148,14 @@ class RobotContainer:
             lambda state: self._logger.telemeterize(state)
         )
 
+
+
     def getAutonomousCommand(self) -> commands2.Command:
         """Use this to pass the autonomous command to the main {@link Robot} class.
 
         :returns: the command to run in autonomous
         """
         return self._auto_chooser.getSelected()
+    
+    def telemetry(self):
+        self.coral_arm.telemetry()

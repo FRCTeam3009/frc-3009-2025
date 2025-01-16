@@ -43,6 +43,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
 
+        self.container.telemetry()
+
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""
         pass
