@@ -1,6 +1,5 @@
 import phoenix6.units
 import ntcore
-import typing
 import dataclasses
 from wpiutil import wpistruct
 import commands2
@@ -31,16 +30,16 @@ class MoveArmCommand(commands2.Command):
 
 class CoralArm(object):
     def __init__(self):
-        #todo add shoulder arm height
+        # TODO add shoulder arm height
         self.bicep_arm = ArmSegment(20)
         self.fore_arm = ArmSegment(20)
 
-        # Telemetry
+        # Telemetry network tables setup
         self.network_table_instance = ntcore.NetworkTableInstance.getDefault()
         self.coral_arm_table = self.network_table_instance.getTable("coralArm")
         self.bicep_publish_positions = self.coral_arm_table.getStructTopic("bicep", ArmSegment).publish()
         self.forearm_publish_positions = self.coral_arm_table.getStructTopic("forearm", ArmSegment).publish()
 
-    def telemetry(self):#todo add parameters (the function)
+    def telemetry(self):
         self.bicep_publish_positions.set(self.bicep_arm)
         self.forearm_publish_positions.set(self.fore_arm)
