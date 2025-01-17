@@ -97,7 +97,7 @@ class RobotContainer:
             )
         )
 
-        self._joystick.a().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
+        '''self._joystick.a().whileTrue(self.drivetrain.apply_request(lambda: self._brake))
         self._joystick.b().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._point.with_module_direction(
@@ -105,7 +105,7 @@ class RobotContainer:
                 )
             )
         )
-
+'''
         self._joystick.pov(0).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0.5).with_velocity_y(0)
@@ -132,11 +132,18 @@ class RobotContainer:
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
 
+        self.motor_speed = 0.5
         self._joystick.x().whileTrue(
-            self.coral_arm.bicep_arm.move_command(0.1)
+            self.coral_arm.bicep_arm.move_command(self.motor_speed)
         )
         self._joystick.y().whileTrue(
-            self.coral_arm.bicep_arm.move_command(-0.1)
+            self.coral_arm.bicep_arm.move_command(-self.motor_speed)
+        )
+        self._joystick.a().whileTrue(
+            self.coral_arm.fore_arm.move_command(self.motor_speed)
+        )
+        self._joystick.b().whileTrue(
+            self.coral_arm.fore_arm.move_command(-self.motor_speed)
         )
 
         # reset the field-centric heading on left bumper press

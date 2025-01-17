@@ -3,6 +3,7 @@ import ntcore
 import dataclasses
 from wpiutil import wpistruct
 import commands2
+import wpilib
 
 @wpistruct.make_wpistruct
 @dataclasses.dataclass
@@ -18,9 +19,9 @@ class ArmSegment(object):
         self.angle += delta_a
 
     def move_command(self, angle: phoenix6.units.radian) -> commands2.Command:
-        return MoveArmCommand(self, angle)
+        return MoveArmSegment(self, angle)
         
-class MoveArmCommand(commands2.Command):
+class MoveArmSegment(commands2.Command):
     def __init__(self, arm: ArmSegment, angle: phoenix6.units.radian):
         self.arm = arm
         self.angle = angle
@@ -43,3 +44,15 @@ class CoralArm(object):
     def telemetry(self):
         self.bicep_publish_positions.set(self.bicep_arm)
         self.forearm_publish_positions.set(self.fore_arm)
+        self.mech()
+
+    def mech(self):
+        self.box = wpilib.Mechanism2d(3, 3)
+        self.root = self.box.getRoot("TheClaw", 1.5, 1.5)
+        self.bicep = self.root.appendLigament(
+            "Bicep", 0.5, self.bicep_arm.angle
+        )
+        self.shoulder = self.bicep.appendLigament(
+            "Shoulder", 0.5, self.fore_arm.angle
+        )
+        wpilib.SmartDashboard.putData("THECLAW", self.box)
