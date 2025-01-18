@@ -65,7 +65,7 @@ class RobotContainer:
         self.elevator = subsystems.elevator.Elevator()
 
         # Path follower
-        self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
+        self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
         SmartDashboard.putData("Auto Mode", self._auto_chooser)
 
         # Configure the button bindings

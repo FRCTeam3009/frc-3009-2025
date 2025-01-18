@@ -263,6 +263,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
             lambda: (DriverStation.getAlliance() or DriverStation.Alliance.kBlue) == DriverStation.Alliance.kRed,
             self # Subsystem for requirements
         )
+        AutoBuilder.pathfindToPose
 
     def apply_request(
         self, request: Callable[[], swerve.requests.SwerveRequest]
