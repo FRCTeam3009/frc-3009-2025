@@ -14,10 +14,11 @@ from telemetry import Telemetry
 import subsystems.elevator
 
 from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.path import PathConstraints
 from phoenix6 import swerve
 from wpilib import SmartDashboard
-from wpimath.geometry import Rotation2d
-from wpimath.units import rotationsToRadians
+from wpimath.geometry import Rotation2d, Pose2d
+from wpimath.units import rotationsToRadians, degreesToRadians
 
 
 class RobotContainer:
@@ -155,7 +156,25 @@ class RobotContainer:
 
         :returns: the command to run in autonomous
         """
-        return self._auto_chooser.getSelected()
+        #return self._auto_chooser.getSelected()
+        targetPose = Pose2d(7, 8, Rotation2d.fromDegrees(180))
+
+        # Create the constraints to use while pathfinding
+        constraints = PathConstraints(
+            3.0,
+            3.0,
+            degreesToRadians(540),
+            degreesToRadians(720)
+        )
+
+        # Since AutoBuilder is configured, we can use it to build pathfinding commands
+        pathfindingCommand = AutoBuilder.pathfindToPose(
+            targetPose,
+            constraints,
+            goal_end_vel=0.0, # Goal end velocity in meters/sec
+        )
+
+        return pathfindingCommand
     
     def telemetry(self):
         self.elevator.telemetry()
