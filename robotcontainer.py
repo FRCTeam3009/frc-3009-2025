@@ -11,7 +11,7 @@ from commands2.sysid import SysIdRoutine
 
 from generated.tuner_constants import TunerConstants
 from telemetry import Telemetry
-import subsystems.coral_arm
+import subsystems.elevator
 
 from pathplannerlib.auto import AutoBuilder
 from phoenix6 import swerve
@@ -62,7 +62,7 @@ class RobotContainer:
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
-        self.coral_arm = subsystems.coral_arm.CoralArm()
+        self.elevator = subsystems.elevator.Elevator()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Tests")
@@ -132,19 +132,12 @@ class RobotContainer:
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
 
-        self.motor_speed = 0.5
+        self.motor_speed = 0.05
         self._joystick.x().whileTrue(
-            self.coral_arm.bicep_arm.move_command(self.motor_speed)
+            self.elevator.move_command(self.motor_speed)
         )
         self._joystick.y().whileTrue(
-            self.coral_arm.bicep_arm.move_command(-self.motor_speed)
-        )
-        self._joystick.a().whileTrue(
-            self.coral_arm.fore_arm.move_command(self.motor_speed)
-        )
-        self._joystick.b().whileTrue(
-            self.coral_arm.fore_arm.move_command(-self.motor_speed)
-        )
+            self.elevator.move_command(-self.motor_speed))
 
         # reset the field-centric heading on left bumper press
         self._joystick.leftBumper().onTrue(
@@ -165,4 +158,4 @@ class RobotContainer:
         return self._auto_chooser.getSelected()
     
     def telemetry(self):
-        self.coral_arm.telemetry()
+        self.elevator.telemetry()
