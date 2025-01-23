@@ -19,6 +19,7 @@ from phoenix6 import swerve
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.units import rotationsToRadians, degreesToRadians
+import pathplannerlib.path
 
 
 class RobotContainer:
@@ -157,7 +158,29 @@ class RobotContainer:
         :returns: the command to run in autonomous
         """
         #return self._auto_chooser.getSelected()
-        targetPose = Pose2d(7, 8, Rotation2d.fromDegrees(180))
+
+
+        positions = {}
+        positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(-50))
+        positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(50))
+        positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90))
+        positions[6] = Pose2d(13.73, 2.87, Rotation2d.fromDegrees(120))
+        positions[7] = Pose2d(14.44, 4.02, Rotation2d.fromDegrees(180))
+        positions[8] = Pose2d(13.77, 5.21, Rotation2d.fromDegrees(-120))
+        positions[9] = Pose2d(12.31, 5.22, Rotation2d.fromDegrees(-60))
+        positions[10] = Pose2d(11.70, 4.00, Rotation2d.fromDegrees(0))
+        positions[11] = Pose2d(12.41, 2.81, Rotation2d.fromDegrees(60))
+        positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-127))
+        positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(128))
+        positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90))
+        positions[17] = Pose2d(3.84, 2.81, Rotation2d.fromDegrees(60))
+        positions[18] = Pose2d(3.04, 4.01, Rotation2d.fromDegrees(0))
+        positions[19] = Pose2d(3.78, 5.24, Rotation2d.fromDegrees(-60))
+        positions[20] = Pose2d(5.18, 5.19, Rotation2d.fromDegrees(-120))
+        positions[21] = Pose2d(5.85, 4.03, Rotation2d.fromDegrees(180))
+        positions[22] = Pose2d(5.22, 2.83, Rotation2d.fromDegrees(120))
+
+        targetPose = positions[1]
 
         # Create the constraints to use while pathfinding
         constraints = PathConstraints(
@@ -168,13 +191,32 @@ class RobotContainer:
         )
 
         # Since AutoBuilder is configured, we can use it to build pathfinding commands
-        pathfindingCommand = AutoBuilder.pathfindToPose(
+        '''pathfindingCommand = AutoBuilder.pathfindToPose(
             targetPose,
             constraints,
-            goal_end_vel=0.0, # Goal end velocity in meters/sec
+            0.0
+        )
+        secondCommand = AutoBuilder.pathfindToPose(
+            positions[2],
+            constraints,
+            0.0,
         )
 
+        output = pathfindingCommand.andThen(secondCommand)
+
+        return output'''
+
+        pathfindingCommand = commands2.SequentialCommandGroup()
+        for k, v in positions.items():
+            command = AutoBuilder.pathfindToPose(
+                v,
+                constraints,
+                0.0
+            )
+            pathfindingCommand.addCommands(command)
+        
         return pathfindingCommand
+            
     
     def telemetry(self):
         self.elevator.telemetry()
