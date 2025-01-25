@@ -20,6 +20,7 @@ from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.units import rotationsToRadians, degreesToRadians
 import pathplannerlib.path
+import subsystems.limelight
 
 
 class RobotContainer:
@@ -65,6 +66,8 @@ class RobotContainer:
         self.drivetrain = TunerConstants.create_drivetrain()
 
         self.elevator = subsystems.elevator.Elevator()
+
+        self.limelight = subsystems.limelight.Limelight()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
