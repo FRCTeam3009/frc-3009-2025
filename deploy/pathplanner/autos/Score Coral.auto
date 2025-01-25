@@ -27,12 +27,6 @@
           "data": {
             "pathName": "Second Coral Score"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Crash"
-          }
         }
       ]
     }
