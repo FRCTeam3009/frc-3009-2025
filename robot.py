@@ -30,6 +30,9 @@ class MyRobot(commands2.TimedCommandRobot):
         # autonomous chooser on the dashboard.
         self.container = RobotContainer()
 
+        self.consoleTimer = wpilib.Timer()
+        self.consoleTimer.start()
+
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
         that you want ran during disabled, autonomous, teleoperated and test.
@@ -42,7 +45,12 @@ class MyRobot(commands2.TimedCommandRobot):
         # and running subsystem periodic() methods.  This must be called from the robot's periodic
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
-        print(self.container.limelight.currentvalue)
+        
+        self.container.limelight.update_command().schedule()
+        
+        if self.consoleTimer.hasElapsed(1):
+            print(self.container.limelight.currentvalue)
+            self.consoleTimer.reset()
 
         self.container.telemetry()
 

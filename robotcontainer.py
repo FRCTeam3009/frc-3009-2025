@@ -19,7 +19,6 @@ from phoenix6 import swerve
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.units import rotationsToRadians, degreesToRadians
-import pathplannerlib.path
 import subsystems.limelight
 
 

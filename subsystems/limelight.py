@@ -8,7 +8,8 @@ class Limelight(object):
         self.botposetopic = self.table.getDoubleArrayTopic("botpose")
         self.botposesub = self.botposetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-        commands2.cmd.run(lambda: self.update()).ignoringDisable(True).schedule()
+    def update_command(self) -> commands2.Command:
+        return commands2.cmd.run(lambda: self.update()).ignoringDisable(True)
 
     def update(self):
         self.currentvalue = self.botposesub.get()
