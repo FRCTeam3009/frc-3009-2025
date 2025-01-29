@@ -69,7 +69,7 @@ class TunerConstants:
 
     # CAN bus that the devices are located on;
     # All swerve devices must share the same CAN bus
-    canbus = CANBus("canivore", "./logs/example.hoot")
+    canbus = CANBus("canivore") # TODO I think the can network crashes on the real robot.
 
     # Theoretical free speed (m/s) at 12 V applied output;
     # This needs to be tuned to your individual robot

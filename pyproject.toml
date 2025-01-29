@@ -6,5 +6,16 @@ robotpy_extras = [
     "all",
     "apriltag",
     "commands2",
+    "cscore",
+    "navx",
     "pathplannerlib",
+    "rev",
+    "romi",
+    "sim",
+    "xrp",
+]
+
+requires = [
+    "numpy",
+    "phoenix6~=25.1.0"
 ]

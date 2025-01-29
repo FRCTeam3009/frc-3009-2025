@@ -16,7 +16,6 @@ import subsystems.elevator
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import PathConstraints
 from phoenix6 import swerve
-from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.units import rotationsToRadians, degreesToRadians
 import subsystems.limelight
@@ -70,7 +69,6 @@ class RobotContainer:
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
-        SmartDashboard.putData("Auto Mode", self._auto_chooser)
 
         # Configure the button bindings
         self.configureButtonBindings()

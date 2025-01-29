@@ -3,8 +3,8 @@ import commands2.cmd
 
 class Limelight(object):
     def __init__(self):
-        self.NetworkTable = NetworkTableInstance.getDefault()
-        self.table = self.NetworkTable.getTable("limelight")
+        self.nt_instance = NetworkTableInstance.create()
+        self.table = self.nt_instance.getTable("limelight")
         self.botposetopic = self.table.getDoubleArrayTopic("botpose")
         self.botposesub = self.botposetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
