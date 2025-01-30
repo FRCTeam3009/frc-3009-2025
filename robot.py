@@ -47,6 +47,7 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().run()
         
         self.container.limelight.update_command().schedule()
+        self.container.limelight.odometry_command().schedule()
         
         if self.consoleTimer.hasElapsed(1):
             print(self.container.limelight.currentvalue)

@@ -65,7 +65,7 @@ class RobotContainer:
 
         self.elevator = subsystems.elevator.Elevator()
 
-        self.limelight = subsystems.limelight.Limelight()
+        self.limelight = subsystems.limelight.Limelight(self.drivetrain)
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
