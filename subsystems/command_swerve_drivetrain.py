@@ -142,10 +142,13 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         arg3=None,
     ):
         Subsystem.__init__(self)
-        swerve.SwerveDrivetrain.__init__(
-            self, drive_motor_type, steer_motor_type, encoder_type,
-            drivetrain_constants, arg0, arg1, arg2, arg3
-        )
+        try:
+            swerve.SwerveDrivetrain.__init__(
+                self, drive_motor_type, steer_motor_type, encoder_type,
+                drivetrain_constants, arg0, arg1, arg2, arg3
+            )
+        except:
+            print("FATAL ERROR CREATING DRIVETRAIN")
 
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0
@@ -209,9 +212,9 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                 stepVoltage=7.0,
                 # Use default timeout (10 s)
                 # Log state with SignalLogger class
-                recordState=lambda state: SignalLogger.write_string(
-                    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
-                ),
+                #recordState=lambda state: SignalLogger.write_string(
+                #    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
+                #),
             ),
             SysIdRoutine.Mechanism(
                 lambda output: (
@@ -276,7 +279,10 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         :returns: Command to run
         :rtype: Command
         """
-        return self.run(lambda: self.set_control(request()))
+        try:
+            return self.run(lambda: self.set_control(request()))
+        except:
+            print("ERROR IN DRIVETRAIN apply_request")
 
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> Command:
         """

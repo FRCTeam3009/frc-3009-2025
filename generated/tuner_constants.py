@@ -69,7 +69,7 @@ class TunerConstants:
 
     # CAN bus that the devices are located on;
     # All swerve devices must share the same CAN bus
-    canbus = CANBus("canivore") # TODO I think the can network crashes on the real robot.
+    canbus = CANBus("rio")
 
     # Theoretical free speed (m/s) at 12 V applied output;
     # This needs to be tuned to your individual robot
@@ -128,9 +128,9 @@ class TunerConstants:
 
 
     # Front Left
-    _front_left_drive_motor_id = 3
-    _front_left_steer_motor_id = 2
-    _front_left_encoder_id = 1
+    _front_left_drive_motor_id = 11
+    _front_left_steer_motor_id = 12
+    _front_left_encoder_id = 13
     _front_left_encoder_offset: units.rotation = 0.15234375
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
@@ -139,9 +139,9 @@ class TunerConstants:
     _front_left_y_pos: units.meter = inchesToMeters(10)
 
     # Front Right
-    _front_right_drive_motor_id = 1
-    _front_right_steer_motor_id = 0
-    _front_right_encoder_id = 0
+    _front_right_drive_motor_id = 14
+    _front_right_steer_motor_id = 15
+    _front_right_encoder_id = 16
     _front_right_encoder_offset: units.rotation = -0.4873046875
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
@@ -150,9 +150,9 @@ class TunerConstants:
     _front_right_y_pos: units.meter = inchesToMeters(-10)
 
     # Back Left
-    _back_left_drive_motor_id = 7
-    _back_left_steer_motor_id = 6
-    _back_left_encoder_id = 3
+    _back_left_drive_motor_id = 17
+    _back_left_steer_motor_id = 18
+    _back_left_encoder_id = 19
     _back_left_encoder_offset: units.rotation = -0.219482421875
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
@@ -161,9 +161,9 @@ class TunerConstants:
     _back_left_y_pos: units.meter = inchesToMeters(10)
 
     # Back Right
-    _back_right_drive_motor_id = 5
-    _back_right_steer_motor_id = 4
-    _back_right_encoder_id = 2
+    _back_right_drive_motor_id = 20
+    _back_right_steer_motor_id = 21
+    _back_right_encoder_id = 22
     _back_right_encoder_offset: units.rotation = 0.17236328125
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False

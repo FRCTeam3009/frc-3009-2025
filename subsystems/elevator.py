@@ -1,24 +1,31 @@
 import phoenix6.units
 import commands2
 import wpilib
+import phoenix6.hardware
 
 class Elevator(object):
 
     def __init__(self):
         self.elevate = 0
-        self.elevatorlength = 1
+        self.elevator_length = 1
+        self.left_motor = phoenix6.hardware.TalonFX(31, "rio") #31 is device id
+        self.right_motor = phoenix6.hardware.TalonFX(32, "rio") #31 is device id
 
     def move_command(self, height: phoenix6.units.meters_per_second) -> commands2.Command:
-        return MoveElevator(self, height)
+        return MoveElevatorCommand(self, height)
     
     def change_height(self, speed):
         check = self.elevate + speed
-        if check > self.elevatorlength:
-            self.elevate = self.elevatorlength
+        if check > self.elevator_length:
+            self.elevate = self.elevator_length
         elif check < 0:
             self.elevate = 0
-        elif self.elevate <= self.elevatorlength and self.elevate >= 0:
+            self.right_motor.set(0)
+            self.left_motor.set(0)
+        elif self.elevate <= self.elevator_length and self.elevate >= 0:
             self.elevate += speed
+            self.right_motor.set(speed)
+            self.left_motor.set(speed)
         
 
     def telemetry(self):
@@ -36,7 +43,7 @@ class Elevator(object):
         )
         wpilib.SmartDashboard.putData("Elevator", box)
         
-class MoveElevator(commands2.Command):
+class MoveElevatorCommand(commands2.Command):
     def __init__(self, elevator: Elevator, speed: phoenix6.units.meters_per_second):
         self.elevator = elevator
         self.speed = speed

@@ -11,7 +11,7 @@ class Limelight(object):
         self.nt_instance = NetworkTableInstance.create()
         self.table = self.nt_instance.getTable("limelight")
         self.botposetopic = self.table.getDoubleArrayTopic("botpose")
-        self.botposesub = self.botposetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
+        self.botposesub = self.botposetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz, latency
         self.drive_train = drive_train
 
 
@@ -28,10 +28,13 @@ class Limelight(object):
         botpose = self.botposesub.get()
         if self.list_check(botpose):
             pose2d = wpimath.geometry.Pose2d(botpose[0], botpose[1], botpose[5])
-            self.drive_train.add_vision_measurement(pose2d, time.time())
+            latency = botpose[6]
+            latency = latency / 1000.0
+            seconds = time.time() - latency
+            self.drive_train.add_vision_measurement(pose2d, seconds)
 
     def list_check(self, list):
-        if len(list) < 6:
+        if len(list) < 7:
             return False
 
         for value in list:
