@@ -8,7 +8,7 @@ import time
 
 class Limelight(object):
     def __init__(self, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
-        self.nt_instance = NetworkTableInstance.create()
+        self.nt_instance = NetworkTableInstance.getDefault()
         self.table = self.nt_instance.getTable("limelight")
         self.botposetopic = self.table.getDoubleArrayTopic("botpose")
         self.botposesub = self.botposetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz, latency

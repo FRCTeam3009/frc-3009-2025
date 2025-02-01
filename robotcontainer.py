@@ -134,7 +134,7 @@ class RobotContainer:
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
 
-        self.motor_speed = 0.05
+        self.motor_speed = 0.5
         self._joystick.x().whileTrue(
             self.elevator.move_command(self.motor_speed)
         )
