@@ -3,38 +3,43 @@ import commands2
 import wpilib
 import phoenix6.hardware
 import time
+from generated.tuner_constants import TunerConstants
 
 class Elevator(object):
 
     def __init__(self):
-        self.elevate = 0
-        self.elevator_length = 1
-        self.main_motor = phoenix6.hardware.TalonFX(31, "rio") #31 is device id
-        self.follower_motor = phoenix6.hardware.TalonFX(32, "rio") #31 is device id
+        self.main_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_main_id, "rio")
+        self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_follower_id, "rio")
 
-        self.follower_motor.set_control(phoenix6.controls.follower.Follower(31, False))
+        self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double
         self.up_limit = 100.0
-        self.down_limit = self.start_position
-        self.time_var = time.time()
+        self.prev_time = time.time()
 
     def move_command(self, speed: float) -> commands2.Command:
         return MoveElevatorCommand(self, speed)
     
     def change_height(self, speed: float):
         if self.get_position() >= self.up_limit and speed > 0:
+            # Stop the motor if we went too high
             self.main_motor.set(0)
         elif self.get_position() <= self.start_position and speed < 0:
+            # Stop the motor if we went too low
             self.main_motor.set(0)
         else:
+            # Move motor
             self.main_motor.set(speed)
-            difference = time.time() - self.time_var
-            rotations = 6380 / 60 * difference * speed
+
+            # Update sim state
+            difference = time.time() - self.prev_time
+            rpm = 6380
+            seconds_per_minute = 60
+            rotations = rpm / seconds_per_minute * difference * speed
             rotations += self.get_position()
             self.main_motor.sim_state.set_raw_rotor_position(rotations)
         
-        self.time_var = time.time()
+        self.prev_time = time.time()
 
         
 

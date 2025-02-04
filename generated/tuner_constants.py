@@ -171,6 +171,10 @@ class TunerConstants:
     _back_right_x_pos: units.meter = inchesToMeters(-10)
     _back_right_y_pos: units.meter = inchesToMeters(-10)
 
+    _elevator_main_id = 31
+    _elevator_follower_id = 32
+    
+    _pneumatic_controller_id = 40
 
     front_left = _constants_creator.create_module_constants(
         _front_left_steer_motor_id,
