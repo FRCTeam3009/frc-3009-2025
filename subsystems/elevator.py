@@ -1,8 +1,13 @@
 import phoenix6.units
 import commands2
 import wpilib
+import wpimath
 import phoenix6.hardware
 import time
+import rev
+import wpilib.simulation
+import wpimath.system
+import wpimath.system.plant
 from generated.tuner_constants import TunerConstants
 
 # TODO we need to implement the coral shooter thingamajig.
@@ -18,6 +23,9 @@ class Elevator(object):
     def __init__(self):
         self.main_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_main_id, "rio")
         self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_follower_id, "rio")
+        self.coral_out_motor = rev.SparkMax(TunerConstants._coral_out_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.coral_out_sim = rev.SparkMaxSim(self.coral_out_motor, wpimath.system.plant.DCMotor.NEO(1))
+
 
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
 
@@ -49,7 +57,9 @@ class Elevator(object):
         
         self.prev_time = time.time()
 
-        
+    def coral_out(self, speed):
+        self.coral_out_motor.set(speed)
+        self.coral_out_sim.setAppliedOutput(speed)
 
     def telemetry(self):
         box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
@@ -78,3 +88,17 @@ class MoveElevatorCommand(commands2.Command):
         
     def execute(self):
         self.elevator.change_height(self.speed)
+        
+    def end(self, interrupted):
+        self.elevator.change_height(0)
+
+class CoralOutCommand(commands2.Command):
+    def __init__(self, elevator: Elevator, speed):
+        self.elevator = elevator
+        self.speed = speed
+
+    def execute(self):
+        self.elevator.coral_out(self.speed())
+
+    def end(self, interrupted):
+        self.elevator.coral_out(0)

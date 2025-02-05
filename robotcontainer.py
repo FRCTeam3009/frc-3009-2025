@@ -59,7 +59,9 @@ class RobotContainer:
 
         self._logger = Telemetry(self._max_speed)
 
-        self._joystick = commands2.button.CommandXboxController(0)
+        self._driver_joystick = commands2.button.CommandXboxController(0)
+
+        self._operator_joystick = commands2.button.CommandXboxController(1)
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -87,13 +89,13 @@ class RobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._joystick.getLeftY() * self._max_speed
+                        -self._driver_joystick.getLeftY() * self._max_speed
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        -self._joystick.getLeftX() * self._max_speed
+                        -self._driver_joystick.getLeftX() * self._max_speed
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        -self._joystick.getRightX() * self._max_angular_rate
+                        -self._driver_joystick.getRightX() * self._max_angular_rate
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -108,12 +110,12 @@ class RobotContainer:
             )
         )
 '''
-        self._joystick.pov(0).whileTrue(
+        self._driver_joystick.pov(0).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(0.5).with_velocity_y(0)
             )
         )
-        self._joystick.pov(180).whileTrue(
+        self._driver_joystick.pov(180).whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight.with_velocity_x(-0.5).with_velocity_y(0)
             )
@@ -121,36 +123,50 @@ class RobotContainer:
 
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
-        (self._joystick.back() & self._joystick.y()).whileTrue(
+        (self._driver_joystick.back() & self._driver_joystick.y()).whileTrue(
             self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kForward)
         )
-        (self._joystick.back() & self._joystick.x()).whileTrue(
+        (self._driver_joystick.back() & self._driver_joystick.x()).whileTrue(
             self.drivetrain.sys_id_dynamic(SysIdRoutine.Direction.kReverse)
         )
-        (self._joystick.start() & self._joystick.y()).whileTrue(
+        (self._driver_joystick.start() & self._driver_joystick.y()).whileTrue(
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kForward)
         )
-        (self._joystick.start() & self._joystick.x()).whileTrue(
+        (self._driver_joystick.start() & self._driver_joystick.x()).whileTrue(
             self.drivetrain.sys_id_quasistatic(SysIdRoutine.Direction.kReverse)
         )
 
+        # reset the field-centric heading on left bumper press
+        self._driver_joystick.leftBumper().onTrue(
+            self.drivetrain.runOnce(lambda: self.drivetrain.seed_field_centric())
+        )
+
         self.motor_speed = 0.5
-        self._joystick.x().whileTrue(
+        self._operator_joystick.x().whileTrue(
             self.elevator.move_command(self.motor_speed)
         )
-        self._joystick.y().whileTrue(
+        self._operator_joystick.y().whileTrue(
             self.elevator.move_command(-self.motor_speed))
 
-        # reset the field-centric heading on left bumper press
-        self._joystick.leftBumper().onTrue(
-            self.drivetrain.runOnce(lambda: self.drivetrain.seed_field_centric())
+        commands2.button.Trigger(self.is_left_trigger_pressed).whileTrue(
+            subsystems.elevator.CoralOutCommand(self.elevator, self._operator_joystick.getLeftTriggerAxis)
+        )
+        commands2.button.Trigger(self.is_right_trigger_pressed).whileTrue(
+            subsystems.elevator.CoralOutCommand(self.elevator, lambda: -self._operator_joystick.getRightTriggerAxis())
         )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
         )
 
-
+    def is_left_trigger_pressed(self):
+        return self._operator_joystick.getLeftTriggerAxis() > 0.1 and self._operator_joystick.getRightTriggerAxis() < 0.1
+    
+    def is_right_trigger_pressed(self):
+        return self._operator_joystick.getRightTriggerAxis()
+    
+    def is_right_trigger_pressed_raw(axis_value):
+        return axis_value > 0.1
 
     def getAutonomousCommand(self) -> commands2.Command:
         """Use this to pass the autonomous command to the main {@link Robot} class.

@@ -173,6 +173,7 @@ class TunerConstants:
 
     _elevator_main_id = 31
     _elevator_follower_id = 32
+    _coral_out_id = 33
     
     _pneumatic_controller_id = 40
 
