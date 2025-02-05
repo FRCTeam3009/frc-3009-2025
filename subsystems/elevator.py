@@ -15,6 +15,13 @@ from generated.tuner_constants import TunerConstants
 # TODO we'll need the Algae mechanism which is probably pneumatics.
 # I set pneumatics_id in tuner_constants for the module, but then we'll have all the switches and things.
 
+# TODO we'll need to be able to line up to april tags both for collecting coral and for scoring coral.
+
+# TODO we'll want to test the april tag odometry to see if we need to customize it at all
+# (e.g. does it think we teleport around the field or does it update pretty smoothly.)
+
+# TODO test the auto modes on a full size field.
+
 class Elevator(object):
 
     def __init__(self):
