@@ -10,9 +10,6 @@ import wpimath.system
 import wpimath.system.plant
 from generated.tuner_constants import TunerConstants
 
-# TODO we need to implement the coral shooter thingamajig.
-# It looks like we'll most likely have a motor to rotate it up/down and a second motor to fire/release the coral.
-
 # TODO we'll also have whatever climbing mechanism we end up designing. Most likely at least 1 more motor.
 
 # TODO we'll need the Algae mechanism which is probably pneumatics.
