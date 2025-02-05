@@ -154,6 +154,9 @@ class RobotContainer:
         commands2.button.Trigger(self.is_right_trigger_pressed).whileTrue(
             subsystems.elevator.CoralOutCommand(self.elevator, lambda: -self._operator_joystick.getRightTriggerAxis())
         )
+        commands2.button.Trigger(self.is_left_stick_zero).whileFalse(
+            subsystems.elevator.coralWristCommand(self.elevator, self._operator_joystick.getLeftY)
+        )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
@@ -165,8 +168,8 @@ class RobotContainer:
     def is_right_trigger_pressed(self):
         return self._operator_joystick.getRightTriggerAxis()
     
-    def is_right_trigger_pressed_raw(axis_value):
-        return axis_value > 0.1
+    def is_left_stick_zero(self):
+        return abs(self._operator_joystick.getLeftY()) < 0.1
 
     def getAutonomousCommand(self) -> commands2.Command:
         """Use this to pass the autonomous command to the main {@link Robot} class.

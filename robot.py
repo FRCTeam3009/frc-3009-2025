@@ -8,7 +8,6 @@
 import wpilib
 import commands2
 import typing
-import some_command
 
 from robotcontainer import RobotContainer
 
@@ -85,7 +84,6 @@ class MyRobot(commands2.TimedCommandRobot):
         # this line or comment it out.
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
-        some_command.SomeCommand().schedule()
 
     def teleopPeriodic(self) -> None:
         """This function is called periodically during operator control"""

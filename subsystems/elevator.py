@@ -22,6 +22,8 @@ class Elevator(object):
         self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_follower_id, "rio")
         self.coral_out_motor = rev.SparkMax(TunerConstants._coral_out_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_out_sim = rev.SparkMaxSim(self.coral_out_motor, wpimath.system.plant.DCMotor.NEO(1))
+        self.coral_wrist_motor = rev.SparkMax(TunerConstants._coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
 
 
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
@@ -57,6 +59,10 @@ class Elevator(object):
     def coral_out(self, speed):
         self.coral_out_motor.set(speed)
         self.coral_out_sim.setAppliedOutput(speed)
+
+    def coral_wrist(self, speed):
+        self.coral_wrist_motor.set(speed)
+        self.coral_wrist_sim.setAppliedOutput(speed)
 
     def telemetry(self):
         box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
@@ -99,3 +105,14 @@ class CoralOutCommand(commands2.Command):
 
     def end(self, interrupted):
         self.elevator.coral_out(0)
+
+class coralWristCommand(commands2.Command):
+    def __init__(self, elevator, speed):
+        self.elevator = elevator
+        self.speed = speed
+    
+    def execute(self):
+        self.elevator.coral_wrist(self.speed())
+    
+    def end(self, interrupted):
+        self.elevator.coral_wrist(0)
