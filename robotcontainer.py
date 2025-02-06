@@ -10,6 +10,7 @@ import commands2.cmd
 from commands2.sysid import SysIdRoutine
 
 from generated.tuner_constants import TunerConstants
+import subsystems.controller
 from telemetry import Telemetry
 import subsystems.elevator
 
@@ -61,7 +62,7 @@ class RobotContainer:
 
         self._driver_joystick = commands2.button.CommandXboxController(0)
 
-        self._operator_joystick = commands2.button.CommandXboxController(1)
+        self._operator_joystick = subsystems.controller.Controller(1)
 
         self.drivetrain = TunerConstants.create_drivetrain()
 
@@ -141,36 +142,26 @@ class RobotContainer:
             self.drivetrain.runOnce(lambda: self.drivetrain.seed_field_centric())
         )
 
-        self.motor_speed = 0.5
-        self._operator_joystick.x().whileTrue(
-            self.elevator.move_command(self.motor_speed)
+        commands2.button.Trigger(self._operator_joystick.is_left_stick_moved).whileTrue(
+            self.elevator.move_command(self._operator_joystick.get_left_stick_value)
         )
-        self._operator_joystick.y().whileTrue(
-            self.elevator.move_command(-self.motor_speed))
 
-        commands2.button.Trigger(self.is_left_trigger_pressed).whileTrue(
-            subsystems.elevator.CoralOutCommand(self.elevator, self._operator_joystick.getLeftTriggerAxis)
+        commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
+            subsystems.elevator.CoralOutCommand(self.elevator, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis())
         )
-        commands2.button.Trigger(self.is_right_trigger_pressed).whileTrue(
-            subsystems.elevator.CoralOutCommand(self.elevator, lambda: -self._operator_joystick.getRightTriggerAxis())
+
+        commands2.button.Trigger(self._operator_joystick.is_right_trigger_pressed).whileTrue(
+            subsystems.elevator.CoralOutCommand(self.elevator, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
         )
-        commands2.button.Trigger(self.is_left_stick_zero).whileFalse(
-            subsystems.elevator.coralWristCommand(self.elevator, self._operator_joystick.getLeftY)
+        commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
+            subsystems.elevator.coralWristCommand(self.elevator, self._operator_joystick.joystick.getRightY)
         )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
         )
 
-    def is_left_trigger_pressed(self):
-        return self._operator_joystick.getLeftTriggerAxis() > 0.1 and self._operator_joystick.getRightTriggerAxis() < 0.1
     
-    def is_right_trigger_pressed(self):
-        return self._operator_joystick.getRightTriggerAxis()
-    
-    def is_left_stick_zero(self):
-        return abs(self._operator_joystick.getLeftY()) < 0.1
-
     def getAutonomousCommand(self) -> commands2.Command:
         """Use this to pass the autonomous command to the main {@link Robot} class.
 

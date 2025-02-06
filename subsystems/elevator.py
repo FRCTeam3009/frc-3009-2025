@@ -8,6 +8,7 @@ import rev
 import wpilib.simulation
 import wpimath.system
 import wpimath.system.plant
+import typing
 from generated.tuner_constants import TunerConstants
 
 # TODO we'll also have whatever climbing mechanism we end up designing. Most likely at least 1 more motor.
@@ -36,10 +37,13 @@ class Elevator(object):
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double
-        self.up_limit = 100.0
+        self.up_limit = 1000.0
         self.prev_time = time.time()
 
-    def move_command(self, speed: float) -> commands2.Command:
+    def sim_update(self):
+        self.prev_time = time.time()
+
+    def move_command(self, speed) -> commands2.Command:
         return MoveElevatorCommand(self, speed)
     
     def change_height(self, speed: float):
@@ -60,8 +64,6 @@ class Elevator(object):
             rotations = rpm / seconds_per_minute * difference * speed
             rotations += self.get_position()
             self.main_motor.sim_state.set_raw_rotor_position(rotations)
-        
-        self.prev_time = time.time()
 
     def coral_out(self, speed):
         self.coral_out_motor.set(speed)
@@ -92,18 +94,18 @@ class Elevator(object):
     
 
 class MoveElevatorCommand(commands2.Command):
-    def __init__(self, elevator: Elevator, speed: float):
+    def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
         self.elevator = elevator
         self.speed = speed
         
     def execute(self):
-        self.elevator.change_height(self.speed)
+        self.elevator.change_height(self.speed())
         
     def end(self, interrupted):
         self.elevator.change_height(0)
 
 class CoralOutCommand(commands2.Command):
-    def __init__(self, elevator: Elevator, speed):
+    def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
         self.elevator = elevator
         self.speed = speed
 
@@ -114,7 +116,7 @@ class CoralOutCommand(commands2.Command):
         self.elevator.coral_out(0)
 
 class coralWristCommand(commands2.Command):
-    def __init__(self, elevator, speed):
+    def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
         self.elevator = elevator
         self.speed = speed
     
