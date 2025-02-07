@@ -11,7 +11,7 @@ import wpimath.system.plant
 import typing
 from generated.tuner_constants import TunerConstants
 
-# TODO we'll also have whatever climbing mechanism we end up designing. Most likely at least 1 more motor.
+# TODO Add limits to climber and coral wrist
 
 # TODO we'll need the Algae mechanism which is probably pneumatics.
 # I set pneumatics_id in tuner_constants for the module, but then we'll have all the switches and things.

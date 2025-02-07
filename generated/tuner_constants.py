@@ -171,12 +171,6 @@ class TunerConstants:
     _back_right_x_pos: units.meter = inchesToMeters(-10)
     _back_right_y_pos: units.meter = inchesToMeters(-10)
 
-    _elevator_main_id = 31
-    _elevator_follower_id = 32
-    _coral_out_id = 33
-    _coral_wrist_id = 34
-    
-    _pneumatic_controller_id = 40
 
     front_left = _constants_creator.create_module_constants(
         _front_left_steer_motor_id,
@@ -222,6 +216,23 @@ class TunerConstants:
         _back_right_steer_motor_inverted,
         _back_right_encoder_inverted,
     )
+
+
+
+
+    _elevator_main_id = 31
+    _elevator_follower_id = 32
+    _coral_out_id = 33
+    _coral_wrist_id = 34
+    _climber_id = 35
+    
+    _pneumatic_controller_id = 40
+
+    climber_speed_constant = 0.5
+
+
+
+
 
     @classmethod
     def create_drivetrain(clazz) -> CommandSwerveDrivetrain:

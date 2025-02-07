@@ -10,6 +10,7 @@ import commands2.cmd
 from commands2.sysid import SysIdRoutine
 
 from generated.tuner_constants import TunerConstants
+import subsystems.climber
 import subsystems.controller
 from telemetry import Telemetry
 import subsystems.elevator
@@ -69,6 +70,8 @@ class RobotContainer:
         self.elevator = subsystems.elevator.Elevator()
 
         self.limelight = subsystems.limelight.Limelight(self.drivetrain)
+
+        self.climber = subsystems.climber.Climber()
 
         # Path follower
         self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
@@ -155,6 +158,12 @@ class RobotContainer:
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
             subsystems.elevator.coralWristCommand(self.elevator, self._operator_joystick.joystick.getRightY)
+        )
+        self._operator_joystick.joystick.povUp().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, TunerConstants.climber_speed_constant)
+        )
+        self._operator_joystick.joystick.povDown().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, -TunerConstants.climber_speed_constant)
         )
 
         self.drivetrain.register_telemetry(
