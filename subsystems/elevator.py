@@ -13,9 +13,6 @@ from generated.tuner_constants import TunerConstants
 
 # TODO Add limits to climber and coral wrist
 
-# TODO we'll need the Algae mechanism which is probably pneumatics.
-# I set pneumatics_id in tuner_constants for the module, but then we'll have all the switches and things.
-
 # TODO we'll need to be able to line up to april tags both for collecting coral and for scoring coral.
 
 # TODO we'll want to test the april tag odometry to see if we need to customize it at all
