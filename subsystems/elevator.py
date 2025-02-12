@@ -20,6 +20,8 @@ from generated.tuner_constants import TunerConstants
 
 # TODO test the auto modes on a full size field.
 
+# TODO errors with the robot relative drive if there are any issues remember this
+
 class Elevator(object):
 
     def __init__(self):
