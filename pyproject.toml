@@ -1,6 +1,6 @@
 [tool.robotpy]
 
-robotpy_version = "2025.2.1.2"
+robotpy_version = "2025.2.1.3"
 
 robotpy_extras = [
     "all",
@@ -13,9 +13,10 @@ robotpy_extras = [
     "romi",
     "sim",
     "xrp",
+    "phoenix5",
 ]
 
 requires = [
     "numpy",
-    "phoenix6~=25.1.0"
+    "phoenix6",
 ]

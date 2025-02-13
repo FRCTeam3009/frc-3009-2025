@@ -3,12 +3,14 @@ import commands2
 import wpilib
 import wpimath
 import phoenix6.hardware
+import phoenix5
 import time
 import rev
 import wpilib.simulation
 import wpimath.system
 import wpimath.system.plant
 import typing
+import math
 from generated.tuner_constants import TunerConstants
 
 # TODO Add limits to climber and coral wrist
@@ -27,11 +29,11 @@ class Elevator(object):
     def __init__(self):
         self.main_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_main_id, "rio")
         self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_follower_id, "rio")
-        self.coral_out_motor = rev.SparkMax(TunerConstants._coral_out_id, rev.SparkLowLevel.MotorType.kBrushless)
-        self.coral_out_sim = rev.SparkMaxSim(self.coral_out_motor, wpimath.system.plant.DCMotor.NEO(1))
+
+        self.coral_out_motor = phoenix5.TalonSRX(TunerConstants._coral_out_id)
+
         self.coral_wrist_motor = rev.SparkMax(TunerConstants._coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
-
 
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
 
@@ -65,8 +67,9 @@ class Elevator(object):
             self.main_motor.sim_state.set_raw_rotor_position(rotations)
 
     def coral_out(self, speed):
-        self.coral_out_motor.set(speed)
-        self.coral_out_sim.setAppliedOutput(speed)
+        self.coral_out_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
+        self.coral_out_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
+        self.coral_out_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def coral_wrist(self, speed):
         self.coral_wrist_motor.set(speed)

@@ -12,9 +12,10 @@ from commands2.sysid import SysIdRoutine
 from generated.tuner_constants import TunerConstants
 import subsystems.climber
 import subsystems.controller
+import subsystems.mock_drivetrain
 import subsystems.solenoids
-from telemetry import Telemetry
 import subsystems.elevator
+import telemetry
 
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import PathConstraints
@@ -60,13 +61,18 @@ class RobotContainer:
             )
         )
 
-        self._logger = Telemetry(self._max_speed)
+        #self._logger = telemetry.Telemetry(self._max_speed)
 
         self._driver_joystick = commands2.button.CommandXboxController(0)
 
         self._operator_joystick = subsystems.controller.Controller(1)
 
-        self.drivetrain = TunerConstants.create_drivetrain()
+        self.drivetrain = None
+        try:
+            self.drivetrain = TunerConstants.create_drivetrain()
+        except:
+            print("FATAL ERROR CREATING DRIVETRAIN FROM TUNERCONSTANTS")
+            self.drivetrain = subsystems.mock_drivetrain.MockDriveTrain()
 
         self.elevator = subsystems.elevator.Elevator()
 
@@ -175,9 +181,9 @@ class RobotContainer:
             #subsystems.solenoids.SolenoidsMoveCommandTimed(self.solenoids)
         )
 
-        self.drivetrain.register_telemetry(
-            lambda state: self._logger.telemeterize(state)
-        )
+        #self.drivetrain.register_telemetry(
+        #    lambda state: self._logger.telemeterize(state)
+        #)
 
     
     def getAutonomousCommand(self) -> commands2.Command:
