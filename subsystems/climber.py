@@ -6,7 +6,7 @@ from generated.tuner_constants import TunerConstants
 
 class Climber:
     def __init__(self):
-        self.climber_motor = rev.SparkMax(TunerConstants._climber_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.climber_motor = rev.SparkMax(TunerConstants.climber_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.climber_motor_sim = rev.SparkMaxSim(self.climber_motor, wpimath.system.plant.DCMotor.NEO(1))
         speed = 0.5
 

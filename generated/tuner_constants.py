@@ -9,6 +9,17 @@ class TunerConstants:
     https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tuner-swerve/index.html
     """
 
+    elevator_main_id = 31
+    elevator_follower_id = 32
+    coral_out_id = 33
+    coral_wrist_id = 34
+    climber_id = 35
+    
+    pneumatic_controller_id = 40
+    pigeon_id = 41
+
+    climber_speed_constant = 0.5
+
     # Both sets of gains need to be tuned to your individual robot
 
     # The steer motor uses any SwerveModule.SteerRequestType control request with the
@@ -86,8 +97,6 @@ class TunerConstants:
     _invert_left_side = False
     _invert_right_side = True
 
-    _pigeon_id = 1
-
     # These are only used for simulation
     _steer_inertia: units.kilogram_square_meter = 0.01
     _drive_inertia: units.kilogram_square_meter = 0.01
@@ -98,7 +107,7 @@ class TunerConstants:
     drivetrain_constants = (
         swerve.SwerveDrivetrainConstants()
         .with_can_bus_name(canbus.name)
-        .with_pigeon2_id(_pigeon_id)
+        .with_pigeon2_id(pigeon_id)
         .with_pigeon2_configs(_pigeon_configs)
     )
 
@@ -216,23 +225,6 @@ class TunerConstants:
         _back_right_steer_motor_inverted,
         _back_right_encoder_inverted,
     )
-
-
-
-
-    _elevator_main_id = 31
-    _elevator_follower_id = 32
-    _coral_out_id = 33
-    _coral_wrist_id = 34
-    _climber_id = 35
-    
-    _pneumatic_controller_id = 40
-
-    climber_speed_constant = 0.5
-
-
-
-
 
     @classmethod
     def create_drivetrain(clazz) -> CommandSwerveDrivetrain:

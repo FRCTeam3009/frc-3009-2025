@@ -27,15 +27,15 @@ from generated.tuner_constants import TunerConstants
 class Elevator(object):
 
     def __init__(self):
-        self.main_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_main_id, "rio")
-        self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants._elevator_follower_id, "rio")
+        self.main_motor = phoenix6.hardware.TalonFX(TunerConstants.elevator_main_id, "rio")
+        self.follower_motor = phoenix6.hardware.TalonFX(TunerConstants.elevator_follower_id, "rio")
 
-        self.coral_out_motor = phoenix5.TalonSRX(TunerConstants._coral_out_id)
+        self.coral_out_motor = phoenix5.TalonSRX(TunerConstants.coral_out_id)
 
-        self.coral_wrist_motor = rev.SparkMax(TunerConstants._coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
+        self.coral_wrist_motor = rev.SparkMax(TunerConstants.coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
 
-        self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants._elevator_main_id, False))
+        self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants.elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double
         self.up_limit = 1000.0
