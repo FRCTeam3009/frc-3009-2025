@@ -2,6 +2,7 @@ from ntcore import NetworkTableInstance
 import commands2.cmd
 import phoenix6.swerve
 import wpimath.geometry
+import wpimath.units
 import subsystems.command_swerve_drivetrain
 import wpimath
 import time
@@ -63,8 +64,8 @@ class Limelight(object):
 
     
     def lined_up(self):
-        x_value = self.current_bot_pose_target[0]
-        y_value = self.current_bot_pose_target[1]
+        x_value = wpimath.units.metersToInches(self.current_bot_pose_target[0])
+        y_value = wpimath.units.metersToInches(self.current_bot_pose_target[1])
         rotation = self.current_bot_pose_target[5]
         if abs(x_value - 12) <= 1:
             # TODO make this positive or negative depending on the value
@@ -81,8 +82,8 @@ class Limelight(object):
     
     
     def position_difference(self):
-        x_value = self.current_bot_pose_target[0]
-        y_value = self.current_bot_pose_target[1]
+        x_value = wpimath.units.metersToInches(self.current_bot_pose_target[0])
+        y_value = wpimath.units.metersToInches(self.current_bot_pose_target[1])
         rotation = self.current_bot_pose_target[5]
         return [x_value - 12, y_value - 6.47, rotation]
             
@@ -95,13 +96,41 @@ class line_up_coral(commands2.Command):
         self.limelight = limelight
 
     def execute(self):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(-0.1).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
-        # TODO actually drive
+        lock_on = self.limelight.position_difference()
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(lock_on[0]).with_velocity_y(lock_on[1]).with_rotational_rate(lock_on[2])
+        self.drive_train.apply_request(drive_request).execute()
 
     
     def isFinished(self):
         return self.limelight.lined_up()
     
     def end(self, interrupted):
-        pass
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        self.drive_train.apply_request(drive_request).execute()
+
+
+class drive_forward_to_coral(commands2.Command):
+
+    def __init__(self, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, limelight: Limelight):
+        self.drive_train = drive_train
+        self.limelight = limelight
+
+    def initialize(self):
+        self.start_position = self.drive_train.get_state().pose
+        self.end_position = self.start_position.transformBy(wpimath.geometry.Transform2d.fromFeet(11.0/12.0, 0, 0))
+
+    def execute(self):
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0.5).with_velocity_y(0).with_rotational_rate(0)
+        self.drive_train.apply_request(drive_request).execute()
+        print(self.end_position)
+        print(self.drive_train.get_state().pose)
+
+    
+    def isFinished(self):
+        t = self.end_position - self.drive_train.get_state().pose
+        distance_squared = wpimath.units.metersToInches(t.X() * t.X() + t.Y() * t.Y())
+        return distance_squared < 1
+    
+    def end(self, interrupted):
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        self.drive_train.apply_request(drive_request).execute()

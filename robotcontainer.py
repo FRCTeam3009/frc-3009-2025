@@ -61,7 +61,7 @@ class RobotContainer:
             )
         )
 
-        #self._logger = telemetry.Telemetry(self._max_speed)
+        self._logger = telemetry.Telemetry(self._max_speed)
 
         self._driver_joystick = commands2.button.CommandXboxController(0)
 
@@ -181,9 +181,15 @@ class RobotContainer:
             #subsystems.solenoids.SolenoidsMoveCommandTimed(self.solenoids)
         )
 
-        #self.drivetrain.register_telemetry(
-        #    lambda state: self._logger.telemeterize(state)
-        #)
+        self.drivetrain.register_telemetry(
+            lambda state: self._logger.telemeterize(state)
+        )
+        self._driver_joystick.a().whileTrue(
+            subsystems.limelight.line_up_coral(self.drivetrain, self.limelight)
+        )
+        self._driver_joystick.b().whileTrue(
+            subsystems.limelight.drive_forward_to_coral(self.drivetrain, self.limelight)
+        )
 
     
     def getAutonomousCommand(self) -> commands2.Command:
