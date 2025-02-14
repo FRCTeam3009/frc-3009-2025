@@ -19,7 +19,8 @@ class Controller:
     def is_left_stick_moved(self):
         return abs(self.joystick.getLeftY()) > self.deadzone
     
-    def get_left_stick_value(self):
+    def get_left_stick_y(self):
         return -self.joystick.getLeftY()
-
-
+    
+    def get_right_stick_y(self):
+        return -self.joystick.getRightY()

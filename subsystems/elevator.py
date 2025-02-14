@@ -10,12 +10,12 @@ import wpilib.simulation
 import wpimath.system
 import wpimath.system.plant
 import typing
-import math
 from generated.tuner_constants import TunerConstants
 
 # TODO Add limits to climber and coral wrist
 
-# TODO we'll need to be able to line up to april tags both for collecting coral and for scoring coral.
+# TODO we'll need to move the elevator to specific positions while driving up to the coral station.
+# TODO we'll need to string together the auto commands that exist.
 
 # TODO we'll want to test the april tag odometry to see if we need to customize it at all
 # (e.g. does it think we teleport around the field or does it update pretty smoothly.)
@@ -74,11 +74,16 @@ class Elevator(object):
     def coral_wrist(self, speed):
         self.coral_wrist_motor.set(speed)
         self.coral_wrist_sim.setAppliedOutput(speed)
+        self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed)
 
     def telemetry(self):
         box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
         stationary_root = box.getRoot("Elevator", 15, 0.75)
-        platform_root = box.getRoot("Platform", 15, self.get_position())
+
+        elevator_position = self.get_position() * 30/1000.0
+        wrist_rotation = self.coral_wrist_sim.getPosition()
+
+        platform_root = box.getRoot("Platform", 15, elevator_position)
         stationary_root.appendLigament(
             "stationary", 1, 90, 6, wpilib.Color8Bit(255, 255, 255)
         )
@@ -86,13 +91,16 @@ class Elevator(object):
             "platform", 1, 90
         )
         root.appendLigament(
-            "CLAW", 1, 270, 6, wpilib.Color8Bit(0, 0, 255)
+            "wrist", 1, 180 + wrist_rotation, 6, wpilib.Color8Bit(0, 0, 255)
         )
         wpilib.SmartDashboard.putData("Elevator", box)
         
     
-    def get_position(self) ->float :
+    def get_position(self) -> float:
         return self.main_motor.get_position().value_as_double
+
+    def get_wrist_position(self) -> float:
+        return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
     
 
 class MoveElevatorCommand(commands2.Command):
