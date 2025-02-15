@@ -212,9 +212,9 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                 stepVoltage=7.0,
                 # Use default timeout (10 s)
                 # Log state with SignalLogger class
-                #recordState=lambda state: SignalLogger.write_string(
-                #    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
-                #),
+                recordState=lambda state: SignalLogger.write_string(
+                    "SysIdSteer_State", SysIdRoutineLog.stateEnumToString(state)
+                ),
             ),
             SysIdRoutine.Mechanism(
                 lambda output: (
@@ -341,9 +341,11 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         """
         Adds a vision measurement to the Kalman Filter. This will correct the
         odometry pose estimate while still accounting for measurement noise.
+
         Note that the vision measurement standard deviations passed into this method
         will continue to apply to future measurements until a subsequent call to
         set_vision_measurement_std_devs or this method.
+
         :param vision_robot_pose:           The pose of the robot as measured by the vision camera.
         :type vision_robot_pose:            Pose2d
         :param timestamp:                   The timestamp of the vision measurement in seconds.
