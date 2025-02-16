@@ -10,9 +10,20 @@ class Climber:
         self.climber_motor_sim = rev.SparkMaxSim(self.climber_motor, wpimath.system.plant.DCMotor.NEO(1))
         speed = 0.5
 
+        self.down_limit = self.get_position()
+        self.up_limit = self.down_limit + 100
+
     def climber_movement(self, speed):
-        self.climber_motor.set(speed)
-        self.climber_motor_sim.setAppliedOutput(speed)
+        if self.get_position() > self.up_limit and speed > 0:
+            self.climber_motor.set(0)
+        elif self.get_position() < self.down_limit and speed < 0:
+            self.climber_motor.set(0)
+        else:
+            self.climber_motor.set(speed)
+            self.climber_motor_sim.setAppliedOutput(speed)
+
+    def get_position(self):
+        return self.climber_motor.getEncoder().getPosition()
 
 class MoveClimberCommand(commands2.Command):
     def __init__(self, climber: Climber, speed: float):

@@ -247,13 +247,18 @@ class RobotContainer:
         return output'''
 
         pathfindingCommand = commands2.SequentialCommandGroup()
-        for k, v in positions.items():
-            command = AutoBuilder.pathfindToPose(
-                v,
-                constraints,
-                0.0
-            )
-            pathfindingCommand.addCommands(command)
+        driveToPosition = AutoBuilder.pathfindToPose(
+            positions[11],
+            constraints,
+            0.0
+        )
+        pathfindingCommand.addCommands(driveToPosition)
+        moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(self.elevator, 50)
+        pathfindingCommand.addCommands(moveElevatorToCoralPosition)
+        shootCoral = subsystems.elevator.CoralOutCommand(self.elevator, 1.0)
+        pathfindingCommand.addCommands(commands2.button.Trigger(lambda: shootCoral.timer.hasElapsed(1)).whileFalse(shootCoral))
+        moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(self.elevator, 0)
+        pathfindingCommand.addCommands(moveElevatorToFloor)
         
         return pathfindingCommand
             

@@ -12,8 +12,6 @@ import wpimath.system.plant
 import typing
 from generated.tuner_constants import TunerConstants
 
-# TODO Add limits to climber and coral wrist
-
 # TODO we'll need to move the elevator to specific positions while driving up to the coral station.
 # TODO we'll need to string together the auto commands that exist.
 
@@ -38,8 +36,11 @@ class Elevator(object):
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants.elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double
-        self.up_limit = 1000.0
+        self.up_limit = self.start_position + 1000.0
         self.prev_time = time.time()
+
+        self.up_wrist_limit = 100
+        self.down_wrist_limit = 0
 
     def sim_update(self):
         self.prev_time = time.time()
@@ -72,9 +73,14 @@ class Elevator(object):
         self.coral_out_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def coral_wrist(self, speed):
-        self.coral_wrist_motor.set(speed)
-        self.coral_wrist_sim.setAppliedOutput(speed)
-        self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed)
+        if self.get_wrist_position() > self.up_wrist_limit and speed > 0:
+            self.coral_wrist_motor.set(0)
+        elif self.get_wrist_position() < self.down_wrist_limit and speed < 0:
+            self.coral_wrist_motor.set(0)
+        else:
+            self.coral_wrist_motor.set(speed)
+            self.coral_wrist_sim.setAppliedOutput(speed)
+            self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed)
 
     def telemetry(self):
         box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
@@ -118,12 +124,18 @@ class CoralOutCommand(commands2.Command):
     def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
         self.elevator = elevator
         self.speed = speed
+        self.timer = wpilib.Timer()
+
+    def initialize(self):
+        self.timer.start()
 
     def execute(self):
         self.elevator.coral_out(self.speed())
 
     def end(self, interrupted):
         self.elevator.coral_out(0)
+        self.timer.stop()
+        self.timer.reset()
 
 class coralWristCommand(commands2.Command):
     def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
@@ -135,3 +147,17 @@ class coralWristCommand(commands2.Command):
     
     def end(self, interrupted):
         self.elevator.coral_wrist(0)
+
+class MoveElevatorToPosition(commands2.Command):
+    def __init__(self, elevator: Elevator, position):
+        self.elevator = elevator
+        self.position = position
+
+    def execute(self):
+        if self.elevator.get_position() < self.position:
+            self.elevator.change_height(0.5)
+        else:
+            self.elevator.change_height(-0.5)
+
+    def isFinished(self):
+        return abs(self.elevator.get_position() - self.position) < 10
