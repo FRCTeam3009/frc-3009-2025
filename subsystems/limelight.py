@@ -1,6 +1,7 @@
 from ntcore import NetworkTableInstance
 import commands2.cmd
 import phoenix6.swerve
+import phoenix6.utils
 import wpimath.geometry
 import wpimath.units
 import subsystems.command_swerve_drivetrain
@@ -9,13 +10,13 @@ import time
 import wpilib
 
 class Limelight(object):
-    def __init__(self, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
+    def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
         default_value = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         # tx, ty, tz, rx, ry, rz, latency, tag count, tag span, average distance, average area
 
 
         self.nt_instance = NetworkTableInstance.getDefault()
-        self.table = self.nt_instance.getTable("limelight")
+        self.table = self.nt_instance.getTable(name)
         self.botposetopic = self.table.getDoubleArrayTopic("botpose")
         self.botposesub = self.botposetopic.subscribe(default_value)
         self.drive_train = drive_train
@@ -67,6 +68,8 @@ class Limelight(object):
         x_value = wpimath.units.metersToInches(self.current_bot_pose_target[0])
         y_value = wpimath.units.metersToInches(self.current_bot_pose_target[1])
         rotation = self.current_bot_pose_target[5]
+        if phoenix6.utils.is_simulation():
+            return True
         if abs(x_value - 12) <= 1:
             # TODO make this positive or negative depending on the value
             if  abs(y_value - 6.47) <= 1:

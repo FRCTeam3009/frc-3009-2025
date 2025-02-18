@@ -44,10 +44,10 @@ class RobotContainer:
         # Setting up bindings for necessary control of the swerve drive platform
         self._drive = (
             swerve.requests.FieldCentric()
-            .with_deadband(self._max_speed * 0.1)
+            .with_deadband(self._max_speed * 0.001)
             .with_rotational_deadband(
-                self._max_angular_rate * 0.1
-            )  # Add a 10% deadband
+                self._max_angular_rate * 0.001
+            )  # Add a 0.1% deadband
             .with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )  # Use open-loop control for drive motors
@@ -76,7 +76,9 @@ class RobotContainer:
 
         self.elevator = subsystems.elevator.Elevator()
 
-        self.limelight = subsystems.limelight.Limelight(self.drivetrain)
+        self.front_limelight = subsystems.limelight.Limelight("front-limelight", self.drivetrain)
+
+        self.back_limelight = subsystems.limelight.Limelight("back-limelight", self.drivetrain)
 
         self.climber = subsystems.climber.Climber()
 
@@ -133,7 +135,16 @@ class RobotContainer:
                 lambda: self._forward_straight.with_velocity_x(-0.5).with_velocity_y(0)
             )
         )
-
+        self._driver_joystick.pov(90).whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0.0).with_velocity_y(-0.5)
+            )
+        )
+        self._driver_joystick.pov(270).whileTrue(
+            self.drivetrain.apply_request(
+                lambda: self._forward_straight.with_velocity_x(0.0).with_velocity_y(0.5)
+            )
+        )
         # Run SysId routines when holding back/start and X/Y.
         # Note that each routine should be run exactly once in a single log.
         (self._driver_joystick.back() & self._driver_joystick.y()).whileTrue(
@@ -185,10 +196,10 @@ class RobotContainer:
             lambda state: self._logger.telemeterize(state)
         )
         self._driver_joystick.a().whileTrue(
-            subsystems.limelight.line_up_coral(self.drivetrain, self.limelight)
+            subsystems.limelight.line_up_coral(self.drivetrain, self.front_limelight)
         )
         self._driver_joystick.b().whileTrue(
-            subsystems.limelight.drive_forward_to_coral(self.drivetrain, self.limelight)
+            subsystems.limelight.drive_forward_to_coral(self.drivetrain, self.front_limelight)
         )
 
     
@@ -201,26 +212,24 @@ class RobotContainer:
 
 
         positions = {}
-        positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(-50))
-        positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(50))
-        positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90))
-        positions[6] = Pose2d(13.73, 2.87, Rotation2d.fromDegrees(120))
-        positions[7] = Pose2d(14.44, 4.02, Rotation2d.fromDegrees(180))
-        positions[8] = Pose2d(13.77, 5.21, Rotation2d.fromDegrees(-120))
-        positions[9] = Pose2d(12.31, 5.22, Rotation2d.fromDegrees(-60))
-        positions[10] = Pose2d(11.70, 4.00, Rotation2d.fromDegrees(0))
-        positions[11] = Pose2d(12.41, 2.81, Rotation2d.fromDegrees(60))
-        positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-127))
-        positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(128))
-        positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90))
-        positions[17] = Pose2d(3.84, 2.81, Rotation2d.fromDegrees(60))
-        positions[18] = Pose2d(3.04, 4.01, Rotation2d.fromDegrees(0))
-        positions[19] = Pose2d(3.78, 5.24, Rotation2d.fromDegrees(-60))
-        positions[20] = Pose2d(5.18, 5.19, Rotation2d.fromDegrees(-120))
-        positions[21] = Pose2d(5.85, 4.03, Rotation2d.fromDegrees(180))
-        positions[22] = Pose2d(5.22, 2.83, Rotation2d.fromDegrees(120))
-
-        targetPose = positions[1]
+        positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(130)) # Red Coral Pickup Left
+        positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(50)) # Red Coral Pickup Right
+        positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90)) # Red side, Blue's Algae
+        positions[6] = Pose2d(13.73, 2.87, Rotation2d.fromDegrees(120)) # Red Coral
+        positions[7] = Pose2d(14.44, 4.02, Rotation2d.fromDegrees(180)) # Red Coral
+        positions[8] = Pose2d(13.77, 5.21, Rotation2d.fromDegrees(-120)) # Red Coral
+        positions[9] = Pose2d(12.31, 5.22, Rotation2d.fromDegrees(-60)) # Red Coral
+        positions[10] = Pose2d(11.70, 4.00, Rotation2d.fromDegrees(0)) # Red Coral
+        positions[11] = Pose2d(12.41, 2.81, Rotation2d.fromDegrees(60)) # Red Coral
+        positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-127)) # Blue Coral Pickup Right
+        positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(128)) # Blue Coral Pickup Left
+        positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90)) # Blue Coral
+        positions[17] = Pose2d(3.84, 2.81, Rotation2d.fromDegrees(60)) # Blue Coral 
+        positions[18] = Pose2d(3.04, 4.01, Rotation2d.fromDegrees(0)) # Blue Coral
+        positions[19] = Pose2d(3.78, 5.24, Rotation2d.fromDegrees(-60)) # Blue Coral
+        positions[20] = Pose2d(5.18, 5.19, Rotation2d.fromDegrees(-120)) # Blue Coral
+        positions[21] = Pose2d(5.85, 4.03, Rotation2d.fromDegrees(180)) # Blue Coral
+        positions[22] = Pose2d(5.22, 2.83, Rotation2d.fromDegrees(120)) # Blue Coral
 
         # Create the constraints to use while pathfinding
         constraints = PathConstraints(
@@ -230,22 +239,7 @@ class RobotContainer:
             degreesToRadians(720)
         )
 
-        # Since AutoBuilder is configured, we can use it to build pathfinding commands
-        '''pathfindingCommand = AutoBuilder.pathfindToPose(
-            targetPose,
-            constraints,
-            0.0
-        )
-        secondCommand = AutoBuilder.pathfindToPose(
-            positions[2],
-            constraints,
-            0.0,
-        )
-
-        output = pathfindingCommand.andThen(secondCommand)
-
-        return output'''
-
+        # Place First Coral
         pathfindingCommand = commands2.SequentialCommandGroup()
         driveToPosition = AutoBuilder.pathfindToPose(
             positions[11],
@@ -253,12 +247,33 @@ class RobotContainer:
             0.0
         )
         pathfindingCommand.addCommands(driveToPosition)
+        alignCoral = subsystems.limelight.line_up_coral(self.drivetrain, self.front_limelight)
+        pathfindingCommand.addCommands(alignCoral)
+        driveForward = subsystems.limelight.drive_forward_to_coral(self.drivetrain, self.front_limelight)
         moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(self.elevator, 50)
-        pathfindingCommand.addCommands(moveElevatorToCoralPosition)
+        moveWrist = subsystems.elevator.coralWristToPosition(self.elevator, 100)
+        parallelGroupUp = driveForward.alongWith(moveElevatorToCoralPosition).alongWith(moveWrist)
+        pathfindingCommand.addCommands(parallelGroupUp)
         shootCoral = subsystems.elevator.CoralOutCommand(self.elevator, 1.0)
         pathfindingCommand.addCommands(commands2.button.Trigger(lambda: shootCoral.timer.hasElapsed(1)).whileFalse(shootCoral))
+        wristDown = subsystems.elevator.coralWristToPosition(self.elevator, 0)
         moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(self.elevator, 0)
-        pathfindingCommand.addCommands(moveElevatorToFloor)
+        parallelGroupdown = wristDown.alongWith(moveElevatorToFloor)
+        pathfindingCommand.addCommands(parallelGroupdown)
+
+        # Retrieving Second Coral
+        driveToChute = AutoBuilder.pathfindToPose(
+            positions[1],
+            constraints,
+            0.0
+        )
+        pathfindingCommand.addCommands(driveToChute)
+        # align coral
+        # move forward
+        # wait for coral
+
+        # Placing Second Coral
+
         
         return pathfindingCommand
             

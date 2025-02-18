@@ -49,8 +49,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # block in order for anything in the Command-based framework to work.
         commands2.CommandScheduler.getInstance().run()
         
-        self.container.limelight.update_command().schedule()
-        self.container.limelight.odometry_command().schedule()
+        self.container.front_limelight.update_command().schedule()
+        self.container.front_limelight.odometry_command().schedule()
         
         if self.consoleTimer.hasElapsed(1):
             self.consoleTimer.reset()

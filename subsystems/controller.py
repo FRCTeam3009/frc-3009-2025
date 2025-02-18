@@ -5,7 +5,7 @@ class Controller:
     def __init__(self, id):
         self.joystick = commands2.button.CommandXboxController(id)
 
-        self.deadzone = 0.05
+        self.deadzone = 0.001
 
     def is_left_trigger_pressed(self):
         return self.joystick.getLeftTriggerAxis() > self.deadzone and self.joystick.getRightTriggerAxis() < self.deadzone

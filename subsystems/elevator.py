@@ -81,6 +81,7 @@ class Elevator(object):
             self.coral_wrist_motor.set(speed)
             self.coral_wrist_sim.setAppliedOutput(speed)
             self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed)
+            self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed)
 
     def telemetry(self):
         box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
@@ -148,6 +149,23 @@ class coralWristCommand(commands2.Command):
     def end(self, interrupted):
         self.elevator.coral_wrist(0)
 
+class coralWristToPosition(commands2.Command):
+    def __init__(self, elevator: Elevator, position):
+        self.elevator = elevator
+        self.position = position
+
+    def execute(self):
+        if self.elevator.get_wrist_position() < self.position:
+            self.elevator.coral_wrist(1)
+        else:
+            self.elevator.coral_wrist(-1)
+
+    def isFinished(self):
+        return abs(self.elevator.get_wrist_position() - self.position) < 10
+    
+    def end(self, interrupted):
+        self.elevator.coral_wrist(0)
+
 class MoveElevatorToPosition(commands2.Command):
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
@@ -161,3 +179,6 @@ class MoveElevatorToPosition(commands2.Command):
 
     def isFinished(self):
         return abs(self.elevator.get_position() - self.position) < 10
+    
+    def end(self, interrupted):
+        self.elevator.change_height(0)
