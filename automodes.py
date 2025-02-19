@@ -50,23 +50,41 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     # Place first coral
     cmds = commands2.SequentialCommandGroup()
     cmds.addCommands(drive_to_pose(11))
-    cmds.addCommands(place_coral(drivetrain, front_limelight, elevator, 50, 50, False))
+    cmds.addCommands(place_coral(
+        drivetrain, 
+        front_limelight, 
+        elevator, 
+        subsystems.elevator.ELEVATOR_TOP, 
+        subsystems.elevator.WRIST_TOP, 
+        False))
 
     # Go pick up second coral
     cmds.addCommands(drive_to_pose(1))
-    cmds.addCommands(pickup_coral(drivetrain, back_limelight))
+    cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place second coral
     cmds.addCommands(drive_to_pose(6))
-    cmds.addCommands(place_coral(drivetrain, front_limelight, elevator, 50, 50, False))
+    cmds.addCommands(place_coral(
+        drivetrain, 
+        front_limelight, 
+        elevator, 
+        subsystems.elevator.ELEVATOR_TOP,
+        subsystems.elevator.WRIST_TOP, 
+        False))
 
     # Go pick up third coral
     cmds.addCommands(drive_to_pose(1))
-    cmds.addCommands(pickup_coral(drivetrain, back_limelight))
+    cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place third coral
     cmds.addCommands(drive_to_pose(6))
-    cmds.addCommands(place_coral(drivetrain, front_limelight, elevator, 50, 50, True))
+    cmds.addCommands(place_coral(
+        drivetrain, 
+        front_limelight, 
+        elevator, 
+        subsystems.elevator.ELEVATOR_TOP, 
+        subsystems.elevator.WRIST_TOP, 
+        True))
 
     return cmds
 
@@ -102,9 +120,9 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     parallelGroupUp = driveForward.alongWith(moveElevatorToCoralPosition).alongWith(moveWrist)
     cmds.addCommands(parallelGroupUp)
 
-    # Shoot the coral out onto the post. (TODO add trigger for isFinished)
+    # Shoot the coral out onto the post
     shootCoral = subsystems.elevator.CoralOutCommand(elevator, 1.0)
-    cmds.addCommands(commands2.button.Trigger(lambda: shootCoral.timer.hasElapsed(1)).whileFalse(shootCoral))
+    cmds.addCommands(shootCoral)
 
     # Move the wrist back down to origin.
     wristDown = subsystems.elevator.coralWristToPosition(elevator, 0)
@@ -118,7 +136,8 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     return cmds
 
 def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                 limelight: subsystems.limelight.Limelight):
+                 limelight: subsystems.limelight.Limelight,
+                 elevator: subsystems.elevator.Elevator):
     
     cmds = commands2.SequentialCommandGroup()
 
@@ -131,6 +150,7 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds.addCommands(driveForward)
 
     # Wait until we receive a coral
-    # TODO
+    wait = subsystems.elevator.coral_wait(elevator.coral_sensor_receive)
+    cmds.addCommands(wait)
 
     return cmds

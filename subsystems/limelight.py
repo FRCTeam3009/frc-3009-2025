@@ -158,8 +158,6 @@ class DriveStraightCommand(commands2.Command):
     def execute(self):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(self.speed).with_velocity_y(0).with_rotational_rate(0)
         self.drive_train.apply_request(drive_request).execute()
-        print(self.end_position)
-        print(self.drive_train.get_state().pose)
 
     
     def isFinished(self):

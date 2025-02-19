@@ -22,6 +22,9 @@ from generated.tuner_constants import TunerConstants
 
 # TODO errors with the robot relative drive if there are any issues remember this
 
+ELEVATOR_TOP = 50
+WRIST_TOP = 50
+
 class Elevator(object):
 
     def __init__(self):
@@ -41,6 +44,9 @@ class Elevator(object):
 
         self.up_wrist_limit = 100
         self.down_wrist_limit = 0
+
+        self.top_sensor = wpilib.DigitalInput(9)
+        self.bottom_sensor = wpilib.DigitalInput(8)
 
     def sim_update(self):
         self.prev_time = time.time()
@@ -109,6 +115,16 @@ class Elevator(object):
     def get_wrist_position(self) -> float:
         return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
     
+    def coral_sensor_receive(self):
+        if self.top_sensor.get() or self.bottom_sensor.get():
+            return True
+        return False
+    
+    def coral_sensor_shot(self):
+        if not self.top_sensor.get() and not self.bottom_sensor.get():
+            return True
+        return False
+    
 
 class MoveElevatorCommand(commands2.Command):
     def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
@@ -122,16 +138,24 @@ class MoveElevatorCommand(commands2.Command):
         self.elevator.change_height(0)
 
 class CoralOutCommand(commands2.Command):
-    def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
+    def __init__(self, elevator: Elevator, speed: float):
         self.elevator = elevator
         self.speed = speed
         self.timer = wpilib.Timer()
+        self.sensor = self.elevator.coral_sensor_shot
 
     def initialize(self):
         self.timer.start()
 
     def execute(self):
-        self.elevator.coral_out(self.speed())
+        self.elevator.coral_out(self.speed)
+
+    def isFinished(self):
+        if self.sensor():
+            return True
+        elif self.timer.hasElapsed(5):
+            return True
+        return False
 
     def end(self, interrupted):
         self.elevator.coral_out(0)
@@ -182,3 +206,33 @@ class MoveElevatorToPosition(commands2.Command):
     
     def end(self, interrupted):
         self.elevator.change_height(0)
+
+class coral_wait(commands2.Command):
+    def __init__(self, sensor: typing.Callable[[], bool]):
+        self.sensor = sensor
+        self.timer = wpilib.Timer()
+        self.leave_timer = wpilib.Timer()
+
+    def initialize(self):
+        self.leave_timer.start()
+
+    def execute(self):
+        print(self.sensor())
+
+    def isFinished(self):
+        if self.leave_timer.hasElapsed(5):
+            return True
+        
+        if not self.sensor():
+            self.timer.stop()
+            self.timer.reset()
+        elif self.sensor():
+            self.timer.start()
+            if self.timer.hasElapsed(0.5):
+                self.timer.stop()
+                self.timer.reset()
+                return True
+        return False
+
+    def end(self, interrupted):
+        pass
