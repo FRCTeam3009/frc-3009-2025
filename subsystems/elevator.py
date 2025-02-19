@@ -13,7 +13,6 @@ import typing
 from generated.tuner_constants import TunerConstants
 
 # TODO we'll need to move the elevator to specific positions while driving up to the coral station.
-# TODO we'll need to string together the auto commands that exist.
 
 # TODO we'll want to test the april tag odometry to see if we need to customize it at all
 # (e.g. does it think we teleport around the field or does it update pretty smoothly.)
@@ -86,11 +85,11 @@ class Elevator(object):
         else:
             self.coral_wrist_motor.set(speed)
             self.coral_wrist_sim.setAppliedOutput(speed)
-            self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed)
-            self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed)
+            self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
+            self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
 
     def telemetry(self):
-        box = wpilib.Mechanism2d(30, 30) # TODO these should be like the robot dimensions and the getRoot() part is relative to that.
+        box = wpilib.Mechanism2d(29.5, 29.5)
         stationary_root = box.getRoot("Elevator", 15, 0.75)
 
         elevator_position = self.get_position() * 30/1000.0
@@ -153,7 +152,7 @@ class CoralOutCommand(commands2.Command):
     def isFinished(self):
         if self.sensor():
             return True
-        elif self.timer.hasElapsed(5):
+        elif self.timer.hasElapsed(1):
             return True
         return False
 

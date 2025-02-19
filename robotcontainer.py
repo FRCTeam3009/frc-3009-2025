@@ -16,8 +16,8 @@ import subsystems.mock_drivetrain
 import subsystems.solenoids
 import subsystems.elevator
 import telemetry
+import wpimath.geometry
 
-from pathplannerlib.auto import AutoBuilder
 from phoenix6 import swerve
 from wpimath.units import rotationsToRadians
 import subsystems.limelight
@@ -73,6 +73,8 @@ class RobotContainer:
             print("FATAL ERROR CREATING DRIVETRAIN FROM TUNERCONSTANTS: " + str(e))
             self.drivetrain = subsystems.mock_drivetrain.MockDriveTrain()
 
+        self.drivetrain.reset_pose(wpimath.geometry.Pose2d(10, 2, 0))
+
         self.elevator = subsystems.elevator.Elevator()
 
         self.front_limelight = subsystems.limelight.Limelight("front-limelight", self.drivetrain)
@@ -81,9 +83,6 @@ class RobotContainer:
         self.climber = subsystems.climber.Climber()
 
         self.solenoids = subsystems.solenoids.Solenoids()
-
-        # Path follower
-        self._auto_chooser = AutoBuilder.buildAutoChooser("Score Coral")
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -206,7 +205,6 @@ class RobotContainer:
 
         :returns: the command to run in autonomous
         """
-        #return self._auto_chooser.getSelected()
 
         autoMode = automodes.get_auto_command(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator)
         return autoMode

@@ -11,8 +11,8 @@ import subsystems.mock_drivetrain
 
 # Positions for the robot to line up to the April Tags, indexed by April Tag IDs
 positions = {}
-positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(130)) # Red Coral Pickup Left
-positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(50)) # Red Coral Pickup Right
+positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(127)) # Red Coral Pickup Left
+positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(-127)) # Red Coral Pickup Right
 positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90)) # Red side, Blue's Algae
 positions[6] = Pose2d(13.73, 2.87, Rotation2d.fromDegrees(120)) # Red Coral
 positions[7] = Pose2d(14.44, 4.02, Rotation2d.fromDegrees(180)) # Red Coral
@@ -21,7 +21,7 @@ positions[9] = Pose2d(12.31, 5.22, Rotation2d.fromDegrees(-60)) # Red Coral
 positions[10] = Pose2d(11.70, 4.00, Rotation2d.fromDegrees(0)) # Red Coral
 positions[11] = Pose2d(12.41, 2.81, Rotation2d.fromDegrees(60)) # Red Coral
 positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-127)) # Blue Coral Pickup Right
-positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(128)) # Blue Coral Pickup Left
+positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(127)) # Blue Coral Pickup Left
 positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90)) # Blue Coral
 positions[17] = Pose2d(3.84, 2.81, Rotation2d.fromDegrees(60)) # Blue Coral 
 positions[18] = Pose2d(3.04, 4.01, Rotation2d.fromDegrees(0)) # Blue Coral
@@ -33,10 +33,10 @@ positions[22] = Pose2d(5.22, 2.83, Rotation2d.fromDegrees(120)) # Blue Coral
 def pathplanner_constraints(): 
     # Create the constraints to use while pathfinding
     return pathplannerlib.path.PathConstraints(
-        3.0,
-        3.0,
-        wpimath.units.degreesToRadians(540),
-        wpimath.units.degreesToRadians(720)
+        4.0,
+        4.0,
+        wpimath.units.rotationsToRadians(0.75),
+        wpimath.units.rotationsToRadians(0.75), 
     )
 
 def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -46,10 +46,12 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
                      ) -> commands2.Command:
     
     # Assume we start on the black line, but ultimately we don't care where we start.
+
+    transition_speed = 0.5
         
     # Place first coral
     cmds = commands2.SequentialCommandGroup()
-    cmds.addCommands(drive_to_pose(11))
+    cmds.addCommands(drive_to_pose(11, transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -59,11 +61,11 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up second coral
-    cmds.addCommands(drive_to_pose(1))
+    cmds.addCommands(drive_to_pose(1, transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place second coral
-    cmds.addCommands(drive_to_pose(6))
+    cmds.addCommands(drive_to_pose(6, transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -73,11 +75,11 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up third coral
-    cmds.addCommands(drive_to_pose(1))
+    cmds.addCommands(drive_to_pose(1, transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place third coral
-    cmds.addCommands(drive_to_pose(6))
+    cmds.addCommands(drive_to_pose(6, transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -88,11 +90,11 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
 
     return cmds
 
-def drive_to_pose(pose_id: int):
+def drive_to_pose(pose_id: int, end_speed: float):
     return pathplannerlib.auto.AutoBuilder.pathfindToPose(
             positions[pose_id],
             pathplanner_constraints(),
-            0.0
+            end_speed,
         )
 
 def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -146,7 +148,7 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds.addCommands(alignAprilTag)
 
     # Move forward blindly
-    driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight)
+    driveForward = subsystems.limelight.drive_backward_command(drivetrain, limelight)
     cmds.addCommands(driveForward)
 
     # Wait until we receive a coral
