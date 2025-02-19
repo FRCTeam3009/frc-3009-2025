@@ -39,19 +39,39 @@ def pathplanner_constraints():
         wpimath.units.rotationsToRadians(0.75), 
     )
 
-def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      ) -> commands2.Command:
+    positions = [11, 1, 6, 1, 6]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, positions)
+
+def get_red_auto_2(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     ) -> commands2.Command:
+    positions = [9, 2, 8, 2, 8]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, positions)
+
+def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     positions: list[int],
+                     ) -> commands2.Command:
     
     # Assume we start on the black line, but ultimately we don't care where we start.
+
+    if len(positions) < 5:
+        raise("Invalid auto position list: " + positions)
 
     transition_speed = 0.5
         
     # Place first coral
     cmds = commands2.SequentialCommandGroup()
-    cmds.addCommands(drive_to_pose(11, transition_speed))
+    cmds.addCommands(drive_to_pose(positions[0], transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -61,11 +81,11 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up second coral
-    cmds.addCommands(drive_to_pose(1, transition_speed))
+    cmds.addCommands(drive_to_pose(positions[1], transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place second coral
-    cmds.addCommands(drive_to_pose(6, transition_speed))
+    cmds.addCommands(drive_to_pose(positions[2], transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -75,13 +95,13 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up third coral
-    cmds.addCommands(drive_to_pose(1, transition_speed))
+    cmds.addCommands(drive_to_pose(positions[3], transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place third coral
-    cmds.addCommands(drive_to_pose(6, transition_speed))
+    cmds.addCommands(drive_to_pose(positions[4], transition_speed))
     cmds.addCommands(place_coral(
-        drivetrain, 
+        drivetrain,
         front_limelight, 
         elevator, 
         subsystems.elevator.ELEVATOR_TOP, 

@@ -206,7 +206,7 @@ class RobotContainer:
         :returns: the command to run in autonomous
         """
 
-        autoMode = automodes.get_auto_command(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator)
+        autoMode = automodes.get_red_auto_2(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator)
         return autoMode
             
     
