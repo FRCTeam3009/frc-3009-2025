@@ -150,9 +150,8 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     wristDown = subsystems.elevator.coralWristToPosition(elevator, 0)
     # Move the elevator back down to origin.
     moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0)
-    # Do those in parallel while backing up slightly.
-    driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight)
-    parallelGroupdown = wristDown.alongWith(moveElevatorToFloor).alongWith(driveBackward)
+    # Do those in parallel
+    parallelGroupdown = wristDown.alongWith(moveElevatorToFloor)
     cmds.addCommands(parallelGroupdown)
 
     return cmds
