@@ -33,8 +33,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
             self.consoleTimer = wpilib.Timer()
             self.consoleTimer.start()
-        except:
-            print("FATAL ERROR DURING ROBOT INIT")
+        except Exception as e:
+            print("FATAL ERROR DURING ROBOT INIT: " + str(e))
 
     def robotPeriodic(self) -> None:
         """This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -50,6 +50,7 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().run()
         
         self.container.front_limelight.update_command().schedule()
+        self.container.back_limelight.update_command().schedule()
         self.container.front_limelight.odometry_command().schedule()
         
         if self.consoleTimer.hasElapsed(1):

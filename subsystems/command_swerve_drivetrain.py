@@ -147,8 +147,8 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
                 self, drive_motor_type, steer_motor_type, encoder_type,
                 drivetrain_constants, arg0, arg1, arg2, arg3
             )
-        except:
-            print("FATAL ERROR CREATING DRIVETRAIN")
+        except Exception as e:
+            print("FATAL ERROR CREATING DRIVETRAIN: " + str(e))
 
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0
@@ -281,8 +281,8 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         """
         try:
             return self.run(lambda: self.set_control(request()))
-        except:
-            print("ERROR IN DRIVETRAIN apply_request")
+        except Exception as e:
+            print("ERROR IN DRIVETRAIN apply_request: " + str(e))
 
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> Command:
         """
