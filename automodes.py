@@ -44,33 +44,75 @@ def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerv
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      ) -> commands2.Command:
+    approx_start = Pose2d(10, 2, 0)
     positions = [11, 1, 6, 1, 6]
-    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, positions)
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
 
 def get_red_auto_2(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      ) -> commands2.Command:
+    approx_start = Pose2d(10, 6, 0)
     positions = [9, 2, 8, 2, 8]
-    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, positions)
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
+
+def get_blue_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(7.5, 6, 3.14)
+    positions = [20, 13, 20, 13, 19]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
+
+def get_blue_auto_2(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(7.5, 2, 3.14)
+    positions = [22, 12, 17, 12, 17]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
+
+def annoying_team_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(10, 4, 0)
+    positions = [10]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
+
+def annoying_team_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(7.5, 4, 3.14)
+    positions = [21]
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, approx_start, positions)
+
 
 def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
+                     approx_start: Pose2d,
                      positions: list[int],
                      ) -> commands2.Command:
     
     # Assume we start on the black line, but ultimately we don't care where we start.
-
-    if len(positions) < 5:
-        raise("Invalid auto position list: " + positions)
+    
+    drivetrain.reset_pose(approx_start)
 
     transition_speed = 0.5
-        
+
+    cmds = commands2.SequentialCommandGroup()    
+    
     # Place first coral
-    cmds = commands2.SequentialCommandGroup()
+    if len(positions) < 1:
+        return cmds
     cmds.addCommands(drive_to_pose(positions[0], transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
@@ -81,10 +123,14 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up second coral
+    if len(positions) < 2:
+        return cmds
     cmds.addCommands(drive_to_pose(positions[1], transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place second coral
+    if len(positions) < 3:
+        return cmds
     cmds.addCommands(drive_to_pose(positions[2], transition_speed))
     cmds.addCommands(place_coral(
         drivetrain, 
@@ -95,10 +141,14 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         False))
 
     # Go pick up third coral
+    if len(positions) < 4:
+        return cmds
     cmds.addCommands(drive_to_pose(positions[3], transition_speed))
     cmds.addCommands(pickup_coral(drivetrain, back_limelight, elevator))
 
     # Place third coral
+    if len(positions) < 5:
+        return cmds
     cmds.addCommands(drive_to_pose(positions[4], transition_speed))
     cmds.addCommands(place_coral(
         drivetrain,

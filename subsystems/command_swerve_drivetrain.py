@@ -279,10 +279,7 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         :returns: Command to run
         :rtype: Command
         """
-        try:
-            return self.run(lambda: self.set_control(request()))
-        except Exception as e:
-            print("ERROR IN DRIVETRAIN apply_request: " + str(e))
+        return self.run(lambda: self.set_control(request()))
 
     def sys_id_quasistatic(self, direction: SysIdRoutine.Direction) -> Command:
         """
