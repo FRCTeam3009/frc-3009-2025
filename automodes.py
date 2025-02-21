@@ -5,6 +5,7 @@ import commands2
 import subsystems.command_swerve_drivetrain
 import subsystems.elevator
 import subsystems.limelight
+import ntcore
 from wpimath.geometry import Rotation2d, Pose2d
 
 import subsystems.mock_drivetrain
@@ -225,3 +226,35 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds.addCommands(wait)
 
     return cmds
+
+class AutoDashboard():
+    auto_map = {
+        "redleft": get_red_auto_1,
+        "redright": get_red_auto_2,
+        "blueleft": get_blue_auto_1,
+        "blueright": get_blue_auto_2,
+        "hubrisred": annoying_team_red,
+        "hubrisblue": annoying_team_blue
+       }
+    def __init__(self):
+        self.nt_instance = ntcore.NetworkTableInstance.getDefault()
+        self.table = self.nt_instance.getTable("auto modes")
+        self.optionstopic = self.table.getStringArrayTopic("options")
+        self.options_publisher = self.optionstopic.publish()
+        self.options_publisher.set(list(self.auto_map.keys()))
+
+
+        self.selectedtopic = self.table.getStringTopic("selected")
+        self.selected_publisher = self.selectedtopic.publish()
+        self.selected_publisher.set("redleft")
+        self.selected_subscriber = self.selectedtopic.subscribe("redleft")
+        self.current_auto = self.selected_subscriber.get()
+        
+
+    def update(self):
+        self.options_publisher.set(list(self.auto_map.keys()))
+        self.current_auto = self.selected_subscriber.get()
+
+    def get_current_auto_builder(self, drivetrain, front_limelight, back_limelight, elevator):
+        auto_builder = self.auto_map[self.current_auto]
+        return auto_builder(drivetrain, front_limelight, back_limelight, elevator)

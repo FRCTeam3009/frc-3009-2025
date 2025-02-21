@@ -87,6 +87,8 @@ class RobotContainer:
         # Configure the button bindings
         self.configureButtonBindings()
 
+        self.auto_dashboard = automodes.AutoDashboard()
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by
@@ -206,7 +208,7 @@ class RobotContainer:
         :returns: the command to run in autonomous
         """
 
-        autoMode = automodes.get_blue_auto_1(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator)
+        autoMode = self.auto_dashboard.get_current_auto_builder(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator)
         return autoMode
             
     

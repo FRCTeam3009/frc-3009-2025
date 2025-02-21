@@ -60,6 +60,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
         self.container.elevator.sim_update()
 
+        self.container.auto_dashboard.update()
+
 
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""
