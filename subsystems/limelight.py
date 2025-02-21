@@ -74,7 +74,6 @@ class Limelight(object):
         if phoenix6.utils.is_simulation():
             return True
         if abs(x_value - 12) <= 1:
-            # TODO make this positive or negative depending on the value
             if  abs(y_value - offset) <= 1:
                 if abs(rotation) <= 2:
                     self.line_up_timer.start()

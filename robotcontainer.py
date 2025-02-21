@@ -184,12 +184,6 @@ class RobotContainer:
         self._operator_joystick.joystick.povDown().whileTrue(
             subsystems.climber.MoveClimberCommand(self.climber, -TunerConstants.climber_speed_constant)
         )
-        self._operator_joystick.joystick.x().onTrue(
-            #toggle command
-            subsystems.solenoids.SolenoidsMoveCommand(self.solenoids)
-            #timed command
-            #subsystems.solenoids.SolenoidsMoveCommandTimed(self.solenoids)
-        )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
@@ -199,6 +193,26 @@ class RobotContainer:
         )
         self._driver_joystick.b().whileTrue(
             subsystems.limelight.drive_forward_command(self.drivetrain, self.front_limelight)
+        )
+        self._operator_joystick.joystick.a().whileTrue(
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform).alongWith(
+                subsystems.elevator.coralWristToPosition(self.elevator, subsystems.elevator.coralWristToPosition.platform)
+            )
+        )
+        self._operator_joystick.joystick.x().whileTrue(
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle).alongWith(
+                subsystems.elevator.coralWristToPosition(self.elevator, subsystems.elevator.coralWristToPosition.middle)
+            )
+        )
+        self._operator_joystick.joystick.y().whileTrue(
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.bottom).alongWith(
+                subsystems.elevator.coralWristToPosition(self.elevator, subsystems.elevator.coralWristToPosition.bottom)
+            )
+        )
+        self._operator_joystick.joystick.b().whileTrue(
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top).alongWith(
+                subsystems.elevator.coralWristToPosition(self.elevator, subsystems.elevator.coralWristToPosition.top)
+            )
         )
 
     

@@ -21,8 +21,8 @@ from generated.tuner_constants import TunerConstants
 
 # TODO errors with the robot relative drive if there are any issues remember this
 
-ELEVATOR_TOP = 50
-WRIST_TOP = 50
+#TODO update elevator map values
+
 
 class Elevator(object):
 
@@ -173,6 +173,11 @@ class coralWristCommand(commands2.Command):
         self.elevator.coral_wrist(0)
 
 class coralWristToPosition(commands2.Command):
+    #TODO update these values
+    top = 30
+    middle = 40
+    bottom = 40
+    platform = 50
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
         self.position = position
@@ -190,6 +195,11 @@ class coralWristToPosition(commands2.Command):
         self.elevator.coral_wrist(0)
 
 class MoveElevatorToPosition(commands2.Command):
+    #TODO update these values
+    top = 100
+    middle = 80
+    bottom = 60
+    platform = 40
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
         self.position = position

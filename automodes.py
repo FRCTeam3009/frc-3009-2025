@@ -119,8 +119,8 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         drivetrain, 
         front_limelight, 
         elevator, 
-        subsystems.elevator.ELEVATOR_TOP, 
-        subsystems.elevator.WRIST_TOP, 
+        subsystems.elevator.MoveElevatorToPosition.top, 
+        subsystems.elevator.coralWristToPosition.top, 
         False))
 
     # Go pick up second coral
@@ -137,8 +137,8 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         drivetrain, 
         front_limelight, 
         elevator, 
-        subsystems.elevator.ELEVATOR_TOP,
-        subsystems.elevator.WRIST_TOP, 
+        subsystems.elevator.MoveElevatorToPosition.top, 
+        subsystems.elevator.coralWristToPosition.top, 
         False))
 
     # Go pick up third coral
@@ -155,8 +155,8 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
         drivetrain,
         front_limelight, 
         elevator, 
-        subsystems.elevator.ELEVATOR_TOP, 
-        subsystems.elevator.WRIST_TOP, 
+        subsystems.elevator.MoveElevatorToPosition.top, 
+        subsystems.elevator.coralWristToPosition.top, 
         True))
 
     return cmds
