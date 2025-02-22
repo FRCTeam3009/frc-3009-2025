@@ -8,6 +8,7 @@ import subsystems.limelight
 import ntcore
 import wpilib
 import commands2
+from phoenix6 import swerve
 from wpimath.geometry import Rotation2d, Pose2d
 
 import subsystems.mock_drivetrain
@@ -118,6 +119,8 @@ def submit_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDri
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 4, 0)
     auto_commands = [AutoCommand(positions[10], AutoCommand.drive_place, 0.5),
+                     AutoCommand(positions[3], AutoCommand.drive_to_pose, 0.5),
+                     AutoCommand(positions[1], AutoCommand.wait, 0.5),
                      AutoCommand(positions[2], AutoCommand.drive_pickup, 0.5),
                      AutoCommand(positions[9], AutoCommand.drive_place, 0.5)
                     ]
@@ -129,7 +132,10 @@ def submit_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
                      elevator: subsystems.elevator.Elevator,
                      ) -> commands2.Command:
     approx_start = Pose2d(7.5, 4, 3.14)
+    pose = Pose2d(6.00, 1.50, Rotation2d.fromDegrees(90))
     auto_commands = [AutoCommand(positions[21], AutoCommand.drive_place, 0.5), 
+                    AutoCommand(pose, AutoCommand.drive_to_pose, 0.5),
+                    AutoCommand(positions[1], AutoCommand.wait, 0.5),
                     AutoCommand(positions[12], AutoCommand.drive_pickup, 0.5),
                     AutoCommand(positions[22], AutoCommand.drive_place, 0.5)
                     ]
@@ -152,7 +158,7 @@ def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
 
     for command in auto_commands:
         if command.type == AutoCommand.wait:
-            cmds.addCommands(WaitCommand())
+            cmds.addCommands(WaitCommand(drivetrain))
         elif command.type == AutoCommand.drive_pickup:
             drive_pickup = schedule_drive_pickup(drivetrain, back_limelight, command.position, command.transition_speed, elevator)
             cmds.addCommands(drive_pickup)
@@ -263,10 +269,19 @@ class AutoDashboard():
     
 
 class WaitCommand(commands2.Command):
-    def __init__(self):
+    def __init__(self, drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
+        self.drive_robot_relative = (
+            swerve.requests.RobotCentric()
+            .with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
+        )
+        self.drivetrain = drivetrain
         self.timer = wpilib.Timer()
         
     def execute(self):
+        drive_request = lambda: self.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        self.drivetrain.apply_request(drive_request).execute()
         self.timer.start()
 
     def isFinished(self):

@@ -12,8 +12,6 @@ import wpimath.system.plant
 import typing
 from generated.tuner_constants import TunerConstants
 
-# TODO we'll need to move the elevator to specific positions while driving up to the coral station.
-
 # TODO we'll want to test the april tag odometry to see if we need to customize it at all
 # (e.g. does it think we teleport around the field or does it update pretty smoothly.)
 
