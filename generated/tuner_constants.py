@@ -13,12 +13,12 @@ class TunerConstants:
     elevator_follower_id = 32
     coral_out_id = 33
     coral_wrist_id = 34
-    climber_id = 35
+    climber_id = 45
     
     pneumatic_controller_id = 40
     pigeon_id = 41
 
-    climber_speed_constant = 0.5
+    climber_speed_constant = 0.75
 
     # Both sets of gains need to be tuned to your individual robot
 
@@ -38,7 +38,7 @@ class TunerConstants:
     # output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
     _drive_gains = (
         configs.Slot0Configs()
-        .with_k_p(0.1)
+        .with_k_p(0.2)
         .with_k_i(0)
         .with_k_d(0)
         .with_k_s(0)

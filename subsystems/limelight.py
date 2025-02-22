@@ -38,17 +38,17 @@ class Limelight(object):
         )
 
     def update_command(self) -> commands2.Command:
-        return commands2.cmd.run(self.update).ignoringDisable(True)
+        return commands2.cmd.run(self.update).repeatedly().ignoringDisable(True)
 
     def update(self):
         self.current_bot_pose_value = self.botposesub.get()
         self.current_bot_pose_target = self.botpose_targetspacesub.get()
 
     def odometry_command(self) -> commands2.Command:
-        return commands2.cmd.run(self.odometry_update).ignoringDisable(True)
+        return commands2.cmd.run(self.odometry_update).repeatedly().ignoringDisable(True)
     
     def odometry_update(self):
-        botpose = self.botposesub.get()
+        botpose = self.current_bot_pose_value
         if self.list_check(botpose):
             pose2d = wpimath.geometry.Pose2d(botpose[0], botpose[1], botpose[5])
             latency = botpose[6]
