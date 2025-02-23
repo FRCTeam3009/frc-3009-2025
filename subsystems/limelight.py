@@ -57,7 +57,7 @@ class Limelight(object):
             self.drive_train.add_vision_measurement(pose2d, seconds)
 
     def list_check(self, list):
-        if len(list) < 7:
+        if len(list) < 6:
             return False
 
         for value in list:

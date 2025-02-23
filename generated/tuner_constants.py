@@ -14,6 +14,7 @@ class TunerConstants:
     coral_out_id = 33
     coral_wrist_id = 34
     climber_id = 45
+    coral_tip_id = 36
     
     pneumatic_controller_id = 40
     pigeon_id = 41

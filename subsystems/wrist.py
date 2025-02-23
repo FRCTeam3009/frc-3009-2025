@@ -16,6 +16,8 @@ class Wrist(commands2.Subsystem):
         self.coral_wrist_motor = rev.SparkMax(TunerConstants.coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
 
+        self.coral_tip_motor = phoenix5.TalonSRX(TunerConstants.coral_tip_id)
+
         self.up_wrist_limit = 100
         self.down_wrist_limit = 0
 
@@ -28,6 +30,10 @@ class Wrist(commands2.Subsystem):
         self.wrist_topic = self.nt_table.getDoubleArrayTopic("wrist_position")
         self.wrist_publish = self.wrist_topic.publish()
         self.wrist_publish.set([0.0, 0.0])
+
+        self.tip_topic = self.nt_table.getDoubleTopic("tip_position")
+        self.tip_publish = self.tip_topic.publish()
+        self.tip_publish.set(0.0)
 
         self.coral_sensor_top_topic = self.nt_table.getBooleanTopic("coral_top")
         self.coral_sensor_top_publish = self.coral_sensor_top_topic.publish()
@@ -44,7 +50,6 @@ class Wrist(commands2.Subsystem):
 
     def coral_wrist(self, speed: float):
         self.coral_wrist_motor.set(speed)
-        self.coral_wrist_motor.set(speed)
         self.coral_wrist_sim.setAppliedOutput(speed)
         self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
         self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
@@ -59,13 +64,31 @@ class Wrist(commands2.Subsystem):
             self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
             self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
 
+    def coral_tip(self, speed: float):
+        self.coral_tip_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
+        self.coral_tip_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
+        self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
+        return
+        if self.get_tip_position() > CoralTipToPositionCommand.up and speed > 0:
+            self.coral_tip_motor.set(0)
+        elif self.get_tip_position() < CoralTipToPositionCommand.flat and speed < 0:
+            self.coral_tip_motor.set(0)
+        else:
+            self.coral_tip_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
+            self.coral_tip_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
+            self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
+
     def telemetry(self):
         self.wrist_publish.set([self.coral_wrist_motor.getEncoder().getPosition(), self.get_wrist_position()])
         self.coral_sensor_top_publish.set(self.top_sensor.get())
         self.coral_sensor_bottom_publish.set(self.bottom_sensor.get())
+        self.tip_publish.set(self.get_tip_position())
 
     def get_wrist_position(self) -> float:
         return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
+    
+    def get_tip_position(self) -> float:
+        return self.coral_tip_motor.getSelectedSensorPosition()
     
     def coral_sensor_receive(self):
         if self.top_sensor.get() or self.bottom_sensor.get():
@@ -201,3 +224,30 @@ class coral_wait(commands2.Command):
 
     def end(self, interrupted):
         pass
+
+class CoralTipCommand(commands2.Command):
+    def __init__(self, wrist: Wrist, speed: typing.Callable[[], bool]):
+        self.wrist = wrist
+        self.speed = speed
+
+    def execute(self):
+        self.wrist.coral_tip(self.speed())
+
+    def end(self, interrupted):
+        self.wrist.coral_tip(0)
+
+class CoralTipToPositionCommand(commands2.Command):
+    flat = 0
+    up = 50
+    def __init__(self, wrist: Wrist, position: float):
+        self.wrist = wrist
+        self.position = position
+
+    def execute(self):
+        if self.wrist.get_tip_position() < self.position:
+            self.wrist.coral_tip(1)
+        else:
+            self.wrist.coral_tip(-1)
+
+    def end(self, interrupted):
+        self.wrist.coral_tip(0)
