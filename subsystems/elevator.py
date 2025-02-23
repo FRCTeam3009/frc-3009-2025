@@ -32,7 +32,7 @@ class Elevator(commands2.Subsystem):
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants.elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double - 1
-        self.up_limit = self.start_position - 97.0 # NOTE motor moves backwards to "up" limit is negative.
+        self.up_limit = self.start_position + MoveElevatorToPosition.top # NOTE motor moves backwards to "up" limit is negative.
         self.prev_time = time.time()
 
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
@@ -121,10 +121,10 @@ class MoveElevatorCommand(commands2.Command):
         self.elevator.change_height(0)
 
 class MoveElevatorToPosition(commands2.Command):
-    #TODO update these values
-    top = -76
-    middle = -60
-    bottom = -40
+    # NOTE Moving the elevator up is actually negative values.
+    top = -91
+    middle = -80
+    bottom = -60
     platform = -30
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
