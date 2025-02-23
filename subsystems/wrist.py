@@ -18,8 +18,8 @@ class Wrist(commands2.Subsystem):
 
         self.coral_tip_motor = phoenix5.TalonSRX(TunerConstants.coral_tip_id)
 
-        self.up_wrist_limit = 100
-        self.down_wrist_limit = 0
+        self.up_wrist_limit = 0.1
+        self.down_wrist_limit = 0.0
 
         self.top_sensor = wpilib.DigitalInput(9)
         self.bottom_sensor = wpilib.DigitalInput(8)
@@ -49,11 +49,6 @@ class Wrist(commands2.Subsystem):
         self.coral_out_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def coral_wrist(self, speed: float):
-        self.coral_wrist_motor.set(speed)
-        self.coral_wrist_sim.setAppliedOutput(speed)
-        self.coral_wrist_sim.setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
-        self.coral_wrist_sim.getAbsoluteEncoderSim().setPosition(self.coral_wrist_sim.getPosition() + speed * 2)
-        return
         if self.get_wrist_position() > self.up_wrist_limit and speed > 0:
             self.coral_wrist_motor.set(0)
         elif self.get_wrist_position() < self.down_wrist_limit and speed < 0:
@@ -79,13 +74,13 @@ class Wrist(commands2.Subsystem):
             self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def telemetry(self):
-        self.wrist_publish.set([self.coral_wrist_motor.getEncoder().getPosition(), self.get_wrist_position()])
+        self.wrist_publish.set([self.coral_wrist_motor.getEncoder().getPosition(), self.coral_wrist_motor.getAbsoluteEncoder().getPosition()])
         self.coral_sensor_top_publish.set(self.top_sensor.get())
         self.coral_sensor_bottom_publish.set(self.bottom_sensor.get())
         self.tip_publish.set(self.get_tip_position())
 
     def get_wrist_position(self) -> float:
-        return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
+        return self.coral_wrist_motor.getEncoder().getPosition()
     
     def get_tip_position(self) -> float:
         return self.coral_tip_motor.getSelectedSensorPosition()
@@ -106,7 +101,7 @@ class CoralOutCommand(commands2.Command):
         self.speed = speed
         self.timer = wpilib.Timer()
         self.sensor = self.wrist.coral_sensor_shot
-        self.addRequirements(self.wrist)
+        #self.addRequirements(self.wrist)
 
         self.command_timer = wpilib.Timer()
         self.ntcore_instance = ntcore.NetworkTableInstance.getDefault()
@@ -164,10 +159,11 @@ class CoralWristCommand(commands2.Command):
 
 class CoralWristToPosition(commands2.Command):
     #TODO update these values
-    top = 30
-    middle = 40
-    bottom = 40
-    platform = 50
+    top = 0.02
+    middle = 0.053
+    bottom = 0.053
+    platform = 0.08
+    pickup = 0.092
     def __init__(self, wrist: Wrist, position):
         self.wrist = wrist
         self.position = position
@@ -189,7 +185,7 @@ class CoralWristToPosition(commands2.Command):
         self.command_publish.set(self.command_timer.get())
 
     def isFinished(self):
-        return abs(self.wrist.get_wrist_position() - self.position) < 5
+        return abs(self.wrist.get_wrist_position() - self.position) < 0.01
     
     def end(self, interrupted):
         self.wrist.coral_wrist(0)

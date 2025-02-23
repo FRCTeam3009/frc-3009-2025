@@ -122,10 +122,10 @@ class MoveElevatorCommand(commands2.Command):
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    top = -91
-    middle = -80
-    bottom = -60
-    platform = -30
+    top = -90
+    middle = -55
+    bottom = -27
+    platform = -7.5
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
         self.position = position
@@ -151,7 +151,7 @@ class MoveElevatorToPosition(commands2.Command):
         self.command_publish.set(self.command_timer.get())
 
     def isFinished(self):
-        return abs(self.elevator.get_position() - self.position) < 2
+        return abs(self.elevator.get_position() - self.position) < 0.5
     
     def end(self, interrupted):
         self.elevator.change_height(0)

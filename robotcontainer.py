@@ -85,9 +85,9 @@ class RobotContainer:
         self.front_limelight = subsystems.limelight.Limelight("front-limelight", self.drivetrain)
         self.back_limelight = subsystems.limelight.Limelight("back-limelight", self.drivetrain)
 
-        # self.climber = subsystems.climber.Climber()
+        self.climber = subsystems.climber.Climber()
 
-        #self.solenoids = subsystems.solenoids.Solenoids()
+        # self.solenoids = subsystems.solenoids.Solenoids()
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -106,7 +106,7 @@ class RobotContainer:
     def default_commands(self):
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.MoveElevatorCommand(self.elevator, lambda: 0.0))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.wrist, subsystems.wrist.CoralWristCommand(self.wrist, lambda: 0.0))
-        # commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
+        commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
         
         self.front_limelight.update_command().schedule()
         self.back_limelight.update_command().schedule()
@@ -253,14 +253,17 @@ class RobotContainer:
             subsystems.wrist.CoralOutCommand(self.wrist, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, self._operator_joystick.get_right_stick_y)
+            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * 0.25)
         )
-        # self._operator_joystick.joystick.povUp().whileTrue(
-        #     subsystems.climber.MoveClimberCommand(self.climber, -1 * TunerConstants.climber_speed_constant)
-        # )
-        # self._operator_joystick.joystick.povDown().whileTrue(
-        #     subsystems.climber.MoveClimberCommand(self.climber, TunerConstants.climber_speed_constant)
-        # )
+        self._operator_joystick.joystick.povUp().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, -1 * TunerConstants.climber_speed_constant)
+        )
+        self._operator_joystick.joystick.povDown().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, TunerConstants.climber_speed_constant)
+        )
+        self._operator_joystick.joystick.povLeft().whileTrue(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup)
+        )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
@@ -309,7 +312,7 @@ class RobotContainer:
         return autoMode            
     
     def telemetry(self):
-        # self.climber.telemetry()
+        self.climber.telemetry()
         self.elevator.telemetry()
         self.wrist.telemetry()
         self.periodic_publish.set(self.periodic_timer.get())
