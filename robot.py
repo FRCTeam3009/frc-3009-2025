@@ -11,6 +11,7 @@ import typing
 import ntcore
 
 from robotcontainer import RobotContainer
+from subsystems import elevator
 
 
 class MyRobot(commands2.TimedCommandRobot):

@@ -274,10 +274,19 @@ class RobotContainer:
         self._driver_joystick.b().whileTrue(
             subsystems.limelight.drive_forward_command(self.drivetrain, self.front_limelight)
         )
-        self._operator_joystick.joystick.a().whileTrue(
+        commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
+            subsystems.elevator.MoveElevatorCommand(self.elevator, lambda: self._operator_joystick.get_right_stick_y())
+        )
+        #commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileFalse(
+        #    subsystems.elevator.HoldPositionCommand(self.elevator)
+        #)
+        '''self._operator_joystick.joystick.a().whileTrue(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform).alongWith(
                 subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform)
             )
+        )
+        self._operator_joystick.joystick.a().whileFalse(
+            subsystems.elevator.hold_position(self.elevator)
         )
         self._operator_joystick.joystick.x().whileTrue(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle).alongWith(
@@ -293,7 +302,7 @@ class RobotContainer:
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top).alongWith(
                 subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top)
             )
-        )
+        )'''
         self._operator_joystick.joystick.rightBumper().whileTrue(
             subsystems.wrist.CoralTipToPositionCommand(self.wrist, subsystems.wrist.CoralTipToPositionCommand.up)
         )
