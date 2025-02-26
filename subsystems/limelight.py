@@ -24,6 +24,8 @@ class Limelight(object):
         self.botposesub = self.botposetopic.subscribe(default_value)
         self.drive_train = drive_train
 
+        self.current_bot_pose_field = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.current_bot_pose_target = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.botpose_targetspacetopic = self.table.getDoubleArrayTopic("botpose_targetspace")
         self.botpose_targetspacesub = self.botpose_targetspacetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
@@ -41,14 +43,19 @@ class Limelight(object):
         return commands2.cmd.run(self.update).repeatedly().ignoringDisable(True)
 
     def update(self):
-        self.current_bot_pose_value = self.botposesub.get()
-        self.current_bot_pose_target = self.botpose_targetspacesub.get()
+        fieldspace = self.botposesub.get()
+        if self.list_check(fieldspace):
+            self.current_bot_pose_field = fieldspace
+
+        targetspace = self.botpose_targetspacesub.get()
+        if self.list_check(targetspace):
+            self.current_bot_pose_target = targetspace
 
     def odometry_command(self) -> commands2.Command:
         return commands2.cmd.run(self.odometry_update).repeatedly().ignoringDisable(True)
     
     def odometry_update(self):
-        botpose = self.current_bot_pose_value
+        botpose = self.current_bot_pose_field
         if self.list_check(botpose):
             pose2d = wpimath.geometry.Pose2d(botpose[0], botpose[1], botpose[5])
             latency = botpose[6]
@@ -111,7 +118,10 @@ class LineUpAprilTagCommand(commands2.Command):
 
     def execute(self):
         lock_on = self.limelight.position_difference(self.offset)
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(lock_on[0]).with_velocity_y(lock_on[1]).with_rotational_rate(lock_on[2])
+        x = lock_on[0]
+        y = lock_on[1]
+        z = lock_on[2]
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(x).with_velocity_y(y).with_rotational_rate(z)
         self.drive_train.apply_request(drive_request).execute()
 
     

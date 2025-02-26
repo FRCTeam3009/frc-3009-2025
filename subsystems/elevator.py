@@ -183,11 +183,12 @@ class MoveElevatorToPosition(commands2.Command):
 class HoldPositionCommand(commands2.Command):
     def __init__(self, elevator: Elevator):
         self.elevator = elevator
+        self.addRequirements(self.elevator)
 
     def initialize(self):
         self.position_to_hold = self.elevator.get_position()
     
     def execute(self):
-        difference = self.position_to_hold - self.elevator.get_position()
-        motor_power = difference * 0.01
-        self.elevator.move_command(motor_power)
+        difference = self.elevator.get_position() - self.position_to_hold
+        motor_power = difference * 0.1
+        self.elevator.change_height(motor_power)

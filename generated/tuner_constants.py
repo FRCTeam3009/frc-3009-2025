@@ -19,7 +19,7 @@ class TunerConstants:
     pneumatic_controller_id = 40
     pigeon_id = 41
 
-    climber_speed_constant = 0.75
+    climber_speed_constant = 1
 
     # Both sets of gains need to be tuned to your individual robot
 

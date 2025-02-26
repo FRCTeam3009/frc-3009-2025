@@ -18,7 +18,7 @@ class Wrist(commands2.Subsystem):
 
         self.coral_tip_motor = phoenix5.TalonSRX(TunerConstants.coral_tip_id)
 
-        self.up_wrist_limit = 0.1
+        self.up_wrist_limit = 0.13
         self.down_wrist_limit = 0.0
 
         self.top_sensor = wpilib.DigitalInput(9)
@@ -101,7 +101,6 @@ class CoralOutCommand(commands2.Command):
         self.speed = speed
         self.timer = wpilib.Timer()
         self.sensor = self.wrist.coral_sensor_shot
-        #self.addRequirements(self.wrist)
 
         self.command_timer = wpilib.Timer()
         self.ntcore_instance = ntcore.NetworkTableInstance.getDefault()
@@ -118,15 +117,7 @@ class CoralOutCommand(commands2.Command):
 
     def execute(self):
         self.wrist.coral_out(self.speed())
-
         self.command_publish.set(self.command_timer.get())
-
-    def isFinished(self):
-        if self.sensor():
-            return True
-        elif self.timer.hasElapsed(1):
-            return True
-        return False
 
     def end(self, interrupted):
         self.wrist.coral_out(0)
@@ -160,10 +151,10 @@ class CoralWristCommand(commands2.Command):
 class CoralWristToPosition(commands2.Command):
     #TODO update these values
     top = 0.02
-    middle = 0.053
-    bottom = 0.053
-    platform = 0.08
-    pickup = 0.092
+    middle = 0.065
+    bottom = 0.065
+    platform = 0.082
+    pickup = 0.11
     def __init__(self, wrist: Wrist, position):
         self.wrist = wrist
         self.position = position
@@ -185,7 +176,7 @@ class CoralWristToPosition(commands2.Command):
         self.command_publish.set(self.command_timer.get())
 
     def isFinished(self):
-        return abs(self.wrist.get_wrist_position() - self.position) < 0.01
+        return abs(self.wrist.get_wrist_position() - self.position) < 0.005
     
     def end(self, interrupted):
         self.wrist.coral_wrist(0)
@@ -247,3 +238,17 @@ class CoralTipToPositionCommand(commands2.Command):
 
     def end(self, interrupted):
         self.wrist.coral_tip(0)
+
+
+class HoldPositionCommand(commands2.Command):
+    def __init__(self, wrist: Wrist):
+        self.wrist = wrist
+        self.addRequirements(self.wrist)
+
+    def initialize(self):
+        self.position_to_hold = self.wrist.get_wrist_position()
+    
+    def execute(self):
+        difference = self.position_to_hold - self.wrist.get_wrist_position()
+        motor_power = difference * 3
+        self.wrist.coral_wrist(motor_power)

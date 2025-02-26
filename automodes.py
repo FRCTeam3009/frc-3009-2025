@@ -266,7 +266,7 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     cmds.addCommands(parallelGroupUp)
 
     # Shoot the coral out onto the post
-    shootCoral = subsystems.wrist.CoralOutCommand(wrist, lambda: 1.0)
+    shootCoral = subsystems.wrist.CoralOutCommand(wrist, lambda: 1.0).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
     # Move the wrist back down to origin.
