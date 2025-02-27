@@ -194,7 +194,7 @@ class coral_wait(commands2.Command):
         self.leave_timer.start()
 
     def execute(self):
-        print(self.sensor())
+        pass
 
     def isFinished(self):
         if self.leave_timer.hasElapsed(5):
@@ -274,4 +274,3 @@ class TipCommand(commands2.Command):
     
     def end(self, interrupted):
         self.wrist.is_tip_up = not self.wrist.is_tip_up
-        

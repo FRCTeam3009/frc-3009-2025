@@ -158,28 +158,6 @@ class MoveElevatorToPosition(commands2.Command):
     def end(self, interrupted):
         self.elevator.change_height(0)
 
-
-'''class hold_position(commands2.Command):
-    def __init__(self, elevator: Elevator):
-        self.elevator = elevator
-        self.current_elevator_position = self.elevator.get_position()
-        self.speed = self.elevator.main_motor.get_velocity()
-        self.speed2 = self.elevator.follower_motor.get_velocity()
-    
-    def execute(self):
-        #if self.speed and self.speed2 == 0:
-            #MoveElevatorToPosition(self.elevator, self.current_elevator_position)
-        self.speed_test = -1000 < self.speed and self.speed2 < 1000
-        self.add_voltage = self.current_elevator_position
-        print(self.elevator.get_position())
-        print(self.current_elevator_position)
-        if self.speed_test:
-            MoveElevatorToPosition(self.elevator, self.add_voltage)
-
-    def isFinished(self):
-        #return not self.speed and self.speed2 == 0
-        return not self.speed_test'''
-
 class HoldPositionCommand(commands2.Command):
     def __init__(self, elevator: Elevator):
         self.elevator = elevator
