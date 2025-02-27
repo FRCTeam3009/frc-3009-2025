@@ -103,6 +103,8 @@ class RobotContainer:
         self.periodic_publish = self.periodic_topic.publish()
         self.periodic_publish.set(0.0)
 
+        self.speed_limit = 0.30
+
     def default_commands(self):
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
@@ -117,13 +119,13 @@ class RobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._driver_joystick.getLeftY() * self._max_speed
+                        -self._driver_joystick.getLeftY() * self._max_speed * self.speed_limit
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        -self._driver_joystick.getLeftX() * self._max_speed
+                        -self._driver_joystick.getLeftX() * self._max_speed * self.speed_limit
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        -self._driver_joystick.getRightX() * self._max_angular_rate
+                        -self._driver_joystick.getRightX() * self._max_angular_rate * self.speed_limit
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -143,13 +145,13 @@ class RobotContainer:
             self.drivetrain.apply_request(
                 lambda: (
                     self._drive.with_velocity_x(
-                        -self._driver_joystick.getLeftY() * self._max_speed
+                        -self._driver_joystick.getLeftY() * self._max_speed * self.speed_limit
                     )  # Drive forward with negative Y (forward)
                     .with_velocity_y(
-                        -self._driver_joystick.getLeftX() * self._max_speed
+                        -self._driver_joystick.getLeftX() * self._max_speed * self.speed_limit
                     )  # Drive left with negative X (left)
                     .with_rotational_rate(
-                        -self._driver_joystick.getRightX() * self._max_angular_rate
+                        -self._driver_joystick.getRightX() * self._max_angular_rate * self.speed_limit
                     )  # Drive counterclockwise with negative X (left)
                 )
             )
@@ -302,11 +304,11 @@ class RobotContainer:
                     subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top)
                 )
         )
-        self._operator_joystick.joystick.rightBumper().whileTrue(
-            subsystems.wrist.CoralTipToPositionCommand(self.wrist, subsystems.wrist.CoralTipToPositionCommand.up)
+        self._operator_joystick.joystick.rightBumper().onTrue(
+            subsystems.wrist.TipCommand(self.wrist)
         )
-        self._operator_joystick.joystick.leftBumper().whileTrue(
-            subsystems.wrist.CoralTipToPositionCommand(self.wrist, subsystems.wrist.CoralTipToPositionCommand.flat)
+        self._operator_joystick.joystick.leftBumper().onTrue(
+            subsystems.wrist.TipCommand(self.wrist)
         )
 
     

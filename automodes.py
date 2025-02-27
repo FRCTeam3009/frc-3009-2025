@@ -58,6 +58,14 @@ def pathplanner_constraints():
         wpimath.units.rotationsToRadians(0.75), 
     )
 
+def forward(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, 4.0, 0.3)
+
 def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
@@ -250,32 +258,38 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     cmds = commands2.SequentialCommandGroup()
 
     # Line up according to the limelight AprilTag data.
-    alignCoral = subsystems.limelight.line_up_left_post_command(drivetrain, limelight)
+    alignCoral = subsystems.limelight.line_up_left_post_command(drivetrain, limelight).withTimeout(1.0)
     if right_post:
-        alignCoral = subsystems.limelight.line_up_right_post_command(drivetrain, limelight)
+        alignCoral = subsystems.limelight.line_up_right_post_command(drivetrain, limelight).withTimeout(1.0)
     cmds.addCommands(alignCoral)
 
-    # Move forward blindly to fill the gap where we lose sight of the april tag.
-    driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight)
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position).withTimeout(2.0)
+    moveBetter = subsystems.wrist.CoralWristCommand(wrist, lambda: 0.0).raceWith(moveElevatorToCoralPosition)
+    cmds.addCommands(moveBetter)
     # Move the wrist up to position
-    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position)
-    # Do those things in parallel (while driving forward, move the stuff into position)
-    parallelGroupUp = driveForward.alongWith(moveElevatorToCoralPosition).alongWith(moveWrist)
-    cmds.addCommands(parallelGroupUp)
+    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position).withTimeout(1.0)
+    cmds.addCommands(moveWrist)
+    if wrist_position == subsystems.wrist.CoralWristToPosition.top:
+        tip_up = subsystems.wrist.TipCommand(wrist)
+        cmds.addCommands(tip_up)
+    # Move forward blindly to fill the gap where we lose sight of the april tag.
+    driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight).withTimeout(3.0)
+    cmds.addCommands(driveForward)
 
     # Shoot the coral out onto the post
     shootCoral = subsystems.wrist.CoralOutCommand(wrist, lambda: 1.0).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
+    driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight).withTimeout(3.0)
+    cmds.addCommands(driveBackward)
     # Move the wrist back down to origin.
-    wristDown = subsystems.wrist.CoralWristToPosition(wrist, 0)
+    wristDown = subsystems.wrist.CoralWristToPosition(wrist, 0).withTimeout(1.0)
+    cmds.addCommands(wristDown)
     # Move the elevator back down to origin.
-    moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0)
-    # Do those in parallel
-    parallelGroupdown = wristDown.alongWith(moveElevatorToFloor)
-    cmds.addCommands(parallelGroupdown)
+    moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(2.0)
+    moveElevatorBetter = subsystems.wrist.CoralWristCommand(wrist, lambda: 0.0).raceWith(moveElevatorToFloor)
+    cmds.addCommands(moveElevatorBetter)
 
     return cmds
 
@@ -314,6 +328,7 @@ class AutoDashboard():
         "test_wrist_position": get_test_auto_wrist_position,
         "test_place_coral": get_test_auto_place_coral,
         "test_lineup_coral": get_test_auto_lineup_to_coral,
+        "forward": forward
        }
     def __init__(self):
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()

@@ -121,7 +121,22 @@ class LineUpAprilTagCommand(commands2.Command):
         x = lock_on[0]
         y = lock_on[1]
         z = lock_on[2]
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(x).with_velocity_y(y).with_rotational_rate(z)
+        forward = 0
+        horizontal = 0
+        rotation = 0
+        if x > 0:
+            forward = -0.2
+        elif x < 0:
+            forward = 0.2
+        if y > 0:
+            horizontal = -0.2
+        elif y < 0:
+            horizontal = 0.2
+        if z < 0:
+            rotation = 0.5
+        elif z > 0:
+            rotation = -0.5
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
         self.drive_train.apply_request(drive_request).execute()
 
     

@@ -43,6 +43,8 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_bottom_publish = self.coral_sensor_bottom_topic.publish()
         self.coral_sensor_bottom_publish.set(False)
 
+        self.is_tip_up = False
+
     def coral_out(self, speed: float):
         self.coral_out_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
         self.coral_out_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
@@ -252,3 +254,24 @@ class HoldPositionCommand(commands2.Command):
         difference = self.position_to_hold - self.wrist.get_wrist_position()
         motor_power = difference * 3
         self.wrist.coral_wrist(motor_power)
+
+class TipCommand(commands2.Command):
+    def __init__(self, wrist: Wrist):
+        self.wrist = wrist
+        self.timer = wpilib.Timer()
+
+    def initialize(self):
+        self.timer.start()
+
+    def execute(self):
+        if self.wrist.is_tip_up:
+            self.wrist.coral_tip(-1)
+        else:
+            self.wrist.coral_tip(1)
+    
+    def isFinished(self):
+        return self.timer.hasElapsed(0.5)
+    
+    def end(self, interrupted):
+        self.wrist.is_tip_up = not self.wrist.is_tip_up
+        
