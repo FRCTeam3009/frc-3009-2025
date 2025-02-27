@@ -13,7 +13,7 @@ class Climber(commands2.Subsystem):
         self.climber_motor_sim = rev.SparkFlexSim(self.climber_motor, wpimath.system.plant.DCMotor.NEO(1))
 
         self.down_limit = self.get_position() + 5
-        self.up_limit = self.down_limit + 550
+        self.up_limit = self.down_limit + 600
 
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
         self.nt_table = self.nt_instance.getTable("climber")

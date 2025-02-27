@@ -20,16 +20,15 @@ class Limelight(object):
 
         self.nt_instance = NetworkTableInstance.getDefault()
         self.table = self.nt_instance.getTable(name)
-        self.botposetopic = self.table.getDoubleArrayTopic("botpose")
+        self.botposetopic = self.table.getDoubleArrayTopic("botpose_targetspace")
         self.botposesub = self.botposetopic.subscribe(default_value)
         self.drive_train = drive_train
 
         self.current_bot_pose_field = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.current_bot_pose_target = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.botpose_targetspacetopic = self.table.getDoubleArrayTopic("botpose_targetspace")
+        self.botpose_targetspacetopic = self.table.getDoubleArrayTopic("test_botpose_targetspace")
         self.botpose_targetspacesub = self.botpose_targetspacetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
-        self.line_up_timer = wpilib.Timer()        
 
         
         self.drive_robot_relative = (
@@ -38,6 +37,15 @@ class Limelight(object):
                 phoenix6.swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )
+
+
+        self.lined_up_topic = self.table.getBooleanTopic("test lined up")
+        self.lined_up_publish = self.lined_up_topic.publish()
+        self.lined_up_publish.set(False)
+
+        self.bot_pose_topic = self.table.getDoubleArrayTopic("test current bot pose")
+        self.bot_pose_publish = self.bot_pose_topic.publish()
+        self.bot_pose_publish.set([0.0, 0.0, 0.0])
 
     def update_command(self) -> commands2.Command:
         return commands2.cmd.run(self.update).repeatedly().ignoringDisable(True)
@@ -58,16 +66,18 @@ class Limelight(object):
         botpose = self.current_bot_pose_field
         if self.list_check(botpose):
             pose2d = wpimath.geometry.Pose2d(botpose[0], botpose[1], botpose[5])
-            latency = botpose[6]
-            latency = latency / 1000.0
-            seconds = time.time() - latency
+            seconds = 0
+            if len(botpose) > 6:
+                latency = botpose[6]
+                latency = latency / 1000.0
+                seconds = time.time() - latency
             self.drive_train.add_vision_measurement(pose2d, seconds)
 
-    def list_check(self, list):
-        if len(list) < 6:
+    def list_check(self, l):
+        if len(l) < 6:
             return False
 
-        for value in list:
+        for value in l:
             if value != 0.0:
                 return True
             
@@ -83,13 +93,7 @@ class Limelight(object):
         if abs(x_value - 12) <= 1:
             if  abs(y_value - offset) <= 1:
                 if abs(rotation) <= 2:
-                    self.line_up_timer.start()
-                    if self.line_up_timer.hasElapsed(1):
-                        self.line_up_timer.stop()
-                        self.line_up_timer.reset()
-                        return True
-        self.line_up_timer.stop()
-        self.line_up_timer.reset()
+                    return True
         return False
     
     
@@ -103,6 +107,15 @@ class Limelight(object):
         forward = -12 # inches away from wall
 
         return [x_value + forward, y_value + horizontal, rotation]
+    
+    def telemetry(self):
+        self.lined_up_publish.set(self.lined_up(6.47))
+        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_bot_pose_target[0]), 
+                                    wpimath.units.metersToInches(self.current_bot_pose_target[1]), 
+                                    wpimath.units.metersToInches(self.current_bot_pose_target[5])]
+        self.bot_pose_target_var = self.botpose_targetspacesub.get()
+        self.bot_pose_publish.set(self.bot_pose_target_var)
+        
             
         
 

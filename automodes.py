@@ -264,11 +264,12 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     cmds.addCommands(alignCoral)
 
     # Move elevator up to position
+    wrist_speed = 0.20
     moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position).withTimeout(2.0)
-    moveBetter = subsystems.wrist.CoralWristCommand(wrist, lambda: 0.0).raceWith(moveElevatorToCoralPosition)
+    moveBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).alongWith(moveElevatorToCoralPosition)
     cmds.addCommands(moveBetter)
     # Move the wrist up to position
-    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position).withTimeout(1.0)
+    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position, wrist_speed).withTimeout(1.0)
     cmds.addCommands(moveWrist)
     if wrist_position == subsystems.wrist.CoralWristToPosition.top:
         tip_up = subsystems.wrist.TipCommand(wrist)
@@ -283,12 +284,9 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
 
     driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight).withTimeout(3.0)
     cmds.addCommands(driveBackward)
-    # Move the wrist back down to origin.
-    wristDown = subsystems.wrist.CoralWristToPosition(wrist, 0).withTimeout(1.0)
-    cmds.addCommands(wristDown)
     # Move the elevator back down to origin.
-    moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(2.0)
-    moveElevatorBetter = subsystems.wrist.CoralWristCommand(wrist, lambda: 0.0).raceWith(moveElevatorToFloor)
+    moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(1.0)
+    moveElevatorBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(1.0).alongWith(moveElevatorToFloor)
     cmds.addCommands(moveElevatorBetter)
 
     return cmds
@@ -388,9 +386,9 @@ def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transitio
         drivetrain, 
         front_limelight, 
         elevator, 
-        subsystems.elevator.MoveElevatorToPosition.top,
+        subsystems.elevator.MoveElevatorToPosition.middle,
         wrist, 
-        subsystems.wrist.CoralWristToPosition.top, 
+        subsystems.wrist.CoralWristToPosition.middle, 
         False))
     return cmds
     

@@ -82,15 +82,14 @@ class RobotContainer:
 
         self.wrist = subsystems.wrist.Wrist()
 
-        self.front_limelight = subsystems.limelight.Limelight("front-limelight", self.drivetrain)
-        self.back_limelight = subsystems.limelight.Limelight("back-limelight", self.drivetrain)
+        self.front_limelight = subsystems.limelight.Limelight("limelight-front", self.drivetrain)
+        self.back_limelight = subsystems.limelight.Limelight("limelight-back", self.drivetrain)
 
         self.climber = subsystems.climber.Climber()
 
         # self.solenoids = subsystems.solenoids.Solenoids()
 
-        # Configure the button bindings
-        self.configureButtonBindings()
+
 
         self.auto_dashboard = automodes.AutoDashboard()
 
@@ -103,7 +102,11 @@ class RobotContainer:
         self.periodic_publish = self.periodic_topic.publish()
         self.periodic_publish.set(0.0)
 
-        self.speed_limit = 0.30
+        self.speed_limit = 0.50
+        self.wrist_speed = 0.15
+
+        # Configure the button bindings
+        self.configureButtonBindings()
 
     def default_commands(self):
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))
@@ -255,7 +258,7 @@ class RobotContainer:
             subsystems.wrist.CoralOutCommand(self.wrist, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * 0.25)
+            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed)
         )
         self._operator_joystick.joystick.povUp().whileTrue(
             subsystems.climber.MoveClimberCommand(self.climber, -1 * TunerConstants.climber_speed_constant)
@@ -264,7 +267,7 @@ class RobotContainer:
             subsystems.climber.MoveClimberCommand(self.climber, TunerConstants.climber_speed_constant)
         )
         self._operator_joystick.joystick.a().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup)
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed)
         )
 
         self.drivetrain.register_telemetry(
@@ -277,31 +280,31 @@ class RobotContainer:
             subsystems.limelight.drive_forward_command(self.drivetrain, self.front_limelight)
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: 0.0).raceWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform, self.wrist_speed)
                 )
         )
         self._operator_joystick.joystick.y().whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: 0.0).raceWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle, self.wrist_speed)
                 )
         )
         self._operator_joystick.joystick.x().whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: 0.0).raceWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.bottom))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom, self.wrist_speed)
                 )
         )
         self._operator_joystick.joystick.b().whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: 0.0).raceWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top, self.wrist_speed)
                 )
         )
         self._operator_joystick.joystick.rightBumper().onTrue(
@@ -327,4 +330,5 @@ class RobotContainer:
         self.wrist.telemetry()
         self.periodic_publish.set(self.periodic_timer.get())
         self.periodic_timer.reset()
+        self.front_limelight.telemetry()
         
