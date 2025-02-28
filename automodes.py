@@ -20,21 +20,21 @@ positions = {}
 positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(127)) # Red Coral Pickup Left
 positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(-127)) # Red Coral Pickup Right
 positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90)) # Red side, Blue's Algae
-positions[6] = Pose2d(13.73, 2.87, Rotation2d.fromDegrees(120)) # Red Coral
-positions[7] = Pose2d(14.44, 4.02, Rotation2d.fromDegrees(180)) # Red Coral
-positions[8] = Pose2d(13.77, 5.21, Rotation2d.fromDegrees(-120)) # Red Coral
-positions[9] = Pose2d(12.31, 5.22, Rotation2d.fromDegrees(-60)) # Red Coral
-positions[10] = Pose2d(11.70, 4.00, Rotation2d.fromDegrees(0)) # Red Coral
-positions[11] = Pose2d(12.41, 2.81, Rotation2d.fromDegrees(60)) # Red Coral
+positions[6] = Pose2d(14.13, 2.23, Rotation2d.fromDegrees(120)) # Red Coral
+positions[7] = Pose2d(14.92, 4.04, Rotation2d.fromDegrees(180)) # Red Coral
+positions[8] = Pose2d(14.00, 5.64, Rotation2d.fromDegrees(-120)) # Red Coral
+positions[9] = Pose2d(12.16, 5.55, Rotation2d.fromDegrees(-60)) # Red Coral
+positions[10] = Pose2d(11.20, 4.00, Rotation2d.fromDegrees(0)) # Red Coral
+positions[11] = Pose2d(12.05, 2.14, Rotation2d.fromDegrees(60)) # Red Coral
 positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-307)) # Blue Coral Pickup Right
 positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(307)) # Blue Coral Pickup Left
 positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90)) # Blue Coral
-positions[17] = Pose2d(3.84, 2.81, Rotation2d.fromDegrees(60)) # Blue Coral 
-positions[18] = Pose2d(3.04, 4.01, Rotation2d.fromDegrees(0)) # Blue Coral
-positions[19] = Pose2d(3.78, 5.24, Rotation2d.fromDegrees(-60)) # Blue Coral
-positions[20] = Pose2d(5.18, 5.19, Rotation2d.fromDegrees(-120)) # Blue Coral
-positions[21] = Pose2d(5.85, 4.03, Rotation2d.fromDegrees(180)) # Blue Coral
-positions[22] = Pose2d(5.22, 2.83, Rotation2d.fromDegrees(120)) # Blue Coral
+positions[17] = Pose2d(3.67, 2.25, Rotation2d.fromDegrees(60)) # Blue Coral 
+positions[18] = Pose2d(2.56, 4.03, Rotation2d.fromDegrees(0)) # Blue Coral
+positions[19] = Pose2d(3.41, 5.59, Rotation2d.fromDegrees(-60)) # Blue Coral
+positions[20] = Pose2d(5.55, 5.73, Rotation2d.fromDegrees(-120)) # Blue Coral
+positions[21] = Pose2d(6.35, 3.99, Rotation2d.fromDegrees(180)) # Blue Coral
+positions[22] = Pose2d(5.68, 2.14, Rotation2d.fromDegrees(120)) # Blue Coral
 
 
 
@@ -64,7 +64,7 @@ def forward(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivet
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, 4.0, 0.3)
+    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, wpimath.units.feet(4.0), 0.3)
 
 def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -103,7 +103,7 @@ def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_dri
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.drive_sideways_command(drivetrain, front_limelight, subsystems.limelight.CORAL_POST_OFFSET/12.0)
+    return subsystems.limelight.drive_sideways_command(drivetrain, front_limelight, subsystems.limelight.CORAL_POST_OFFSET)
 
 def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -393,7 +393,7 @@ def schedule_drive_pickup(drivetrain, limelight, position, transition_speed, ele
 def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transition_speed, position):
     cmds = commands2.SequentialCommandGroup()
     cmds.addCommands(drive_to_pose(position, 0.0))
-    #cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
+    cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -414,7 +414,7 @@ def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     cmds.addCommands(alignAprilTag)
 
     # drive sideways go line up with the coral post
-    alignCoral = subsystems.limelight.drive_sideways_command(drivetrain, limelight, 6.47/12.0).withTimeout(1.0)
+    alignCoral = subsystems.limelight.drive_sideways_command(drivetrain, limelight, subsystems.limelight.CORAL_POST_OFFSET).withTimeout(1.0)
     cmds.addCommands(alignCoral)
 
     return cmds

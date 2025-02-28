@@ -105,6 +105,7 @@ class RobotContainer:
 
         # Configure the button bindings
         self.configureButtonBindings()
+        self.default_commands()
 
     def default_commands(self):
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))

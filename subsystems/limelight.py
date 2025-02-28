@@ -9,7 +9,7 @@ import wpimath
 import time
 import wpilib
 
-CORAL_POST_OFFSET = 6.47 # inches offset from center of AprilTag
+CORAL_POST_OFFSET = wpimath.units.inchesToMeters(6.47) # inches offset from center of AprilTag
 
 
 class Limelight(object):
@@ -83,21 +83,21 @@ class Limelight(object):
 
     
     def lined_up(self):
-        x_value = wpimath.units.metersToInches(self.current_target_pose[0])
-        y_value = wpimath.units.metersToInches(self.current_target_pose[1])
+        x_value = wpimath.units.metersToInches(self.current_target_pose[2])
+        y_value = wpimath.units.metersToInches(self.current_target_pose[0])
         rotation = self.current_target_pose[4]
         if phoenix6.utils.is_simulation():
             return True
         
-        if self.list_check(self.current_target_pose) and abs(x_value - 12) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 2:
+        if self.list_check(self.current_target_pose) and abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
             return True
         return False
     
     def telemetry(self):
         self.lined_up_publish.set(self.lined_up())
-        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_target_pose[0]), 
-                                    wpimath.units.metersToInches(self.current_target_pose[1]), 
-                                    wpimath.units.metersToInches(self.current_target_pose[4])]
+        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_target_pose[2]), 
+                                    wpimath.units.metersToInches(self.current_target_pose[0]), 
+                                    self.current_target_pose[4]]
         self.bot_pose_publish.set(self.bot_pose_target_var)
         
             
@@ -113,9 +113,9 @@ class LineUpAprilTagCommand(commands2.Command):
         self.limelight = limelight
 
     def execute(self):
-        x = self.limelight.current_target_pose[0]
-        y = self.limelight.current_target_pose[1]
-        z = self.limelight.current_target_pose[4]
+        x = self.limelight.current_target_pose[2]
+        y = self.limelight.current_target_pose[0]
+        r = self.limelight.current_target_pose[4]
         forward = 0
         horizontal = 0
         rotation = 0
@@ -127,10 +127,10 @@ class LineUpAprilTagCommand(commands2.Command):
             horizontal = 0.2
         elif y < 0:
             horizontal = -0.2
-        if z < 0:
-            rotation = -1.5
-        elif z > 0:
-            rotation = 1.5
+        if r < 5:
+            rotation = 0.5
+        elif r > 5:
+            rotation = -0.5
 
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
         self.drive_train.apply_request(drive_request).schedule()
@@ -162,8 +162,8 @@ class DriveStraightCommand(commands2.Command):
         self.speed = speed
 
     def initialize(self):
-        self.start_position = self.drive_train.get_state().pose
-        self.end_position = self.start_position.transformBy(wpimath.geometry.Transform2d.fromFeet(self.distance, 0, 0))
+        self.start_position = self.drive_train.get_state().pose.X()
+        self.end_position = self.start_position.X() + self.distance
 
     def execute(self):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(self.speed).with_velocity_y(0).with_rotational_rate(0)
@@ -171,10 +171,8 @@ class DriveStraightCommand(commands2.Command):
 
     
     def isFinished(self):
-        t = self.end_position - self.drive_train.get_state().pose
-        distance_squared = wpimath.units.metersToInches(t.X() * t.X() + t.Y() * t.Y())
-        close = 1 # inches
-        return distance_squared < close * close
+        diff = self.end_position - self.drive_train.get_state().pose.X()
+        return abs(diff) < wpimath.units.inchesToMeters(1)
     
     def end(self, interrupted):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
@@ -194,8 +192,8 @@ class DriveSidewaysCommand(commands2.Command):
         self.speed = speed
 
     def initialize(self):
-        self.start_position = self.drive_train.get_state().pose
-        self.end_position = self.start_position.transformBy(wpimath.geometry.Transform2d.fromFeet(0.0, self.distance, 0))
+        self.start_position = self.drive_train.get_state().pose.Y()
+        self.end_position = self.start_position + self.distance
 
     def execute(self):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(self.speed).with_rotational_rate(0)
@@ -203,10 +201,9 @@ class DriveSidewaysCommand(commands2.Command):
 
     
     def isFinished(self):
-        t = self.end_position - self.drive_train.get_state().pose
-        distance_squared = wpimath.units.metersToInches(t.X() * t.X() + t.Y() * t.Y())
-        close = 1 # inches
-        return distance_squared < close * close
+        diff = self.end_position - self.drive_train.get_state().pose.Y()
+        print(str(self.start_position) + " " + str(self.end_position) + " " + str(self.drive_train.get_state().pose.Y()))
+        return abs(diff) < wpimath.units.inchesToMeters(1)
     
     def end(self, interrupted):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
@@ -215,7 +212,7 @@ class DriveSidewaysCommand(commands2.Command):
 
 def drive_forward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                           limelight: Limelight):
-    distance = 11.0/12.0
+    distance = wpimath.units.inchesToMeters(11.0)
     speed = 0.5
     return DriveStraightCommand(drive_train, limelight, distance, speed)
 
@@ -228,6 +225,6 @@ def drive_sideways_command(drive_train: subsystems.command_swerve_drivetrain.Com
 
 def drive_backward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                            limelight: Limelight):
-    distance = -11.0/12.0
+    distance = wpimath.units.inchesToMeters(-11.0)
     speed = -0.5
     return DriveStraightCommand(drive_train, limelight, distance, speed)

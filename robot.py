@@ -88,9 +88,6 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def disabledInit(self) -> None:
         """This function is called once each time the robot enters Disabled mode."""
-        commands2.CommandScheduler.getInstance().cancelAll()
-        self.container.default_commands()
-
         self.disabled_periodic_timer.reset()
         self.disabled_periodic_timer.start()
 
