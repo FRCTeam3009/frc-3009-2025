@@ -20,24 +20,22 @@ class Limelight(object):
 
         self.nt_instance = NetworkTableInstance.getDefault()
         self.table = self.nt_instance.getTable(name)
-        self.botposetopic = self.table.getDoubleArrayTopic("botpose_targetspace")
+        self.botposetopic = self.table.getDoubleArrayTopic("botpose")
         self.botposesub = self.botposetopic.subscribe(default_value)
         self.drive_train = drive_train
 
         self.current_bot_pose_field = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.current_bot_pose_target = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.current_target_pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.botpose_targetspacetopic = self.table.getDoubleArrayTopic("test_botpose_targetspace")
-        self.botpose_targetspacesub = self.botpose_targetspacetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
+        self.targetpose_botspacetopic = self.table.getDoubleArrayTopic("targetpose_robotspace")
+        self.targetpose_botspacesub = self.targetpose_botspacetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
 
-        
         self.drive_robot_relative = (
             phoenix6.swerve.requests.RobotCentric()
             .with_drive_request_type(
                 phoenix6.swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )
-
 
         self.lined_up_topic = self.table.getBooleanTopic("test lined up")
         self.lined_up_publish = self.lined_up_topic.publish()
@@ -55,9 +53,9 @@ class Limelight(object):
         if self.list_check(fieldspace):
             self.current_bot_pose_field = fieldspace
 
-        targetspace = self.botpose_targetspacesub.get()
-        if self.list_check(targetspace):
-            self.current_bot_pose_target = targetspace
+        targetpose = self.targetpose_botspacesub.get()
+        if self.list_check(targetpose):
+            self.current_target_pose = targetpose
 
     def odometry_command(self) -> commands2.Command:
         return commands2.cmd.run(self.odometry_update).repeatedly().ignoringDisable(True)
@@ -84,36 +82,22 @@ class Limelight(object):
         return False
 
     
-    def lined_up(self, offset):
-        x_value = wpimath.units.metersToInches(self.current_bot_pose_target[0])
-        y_value = wpimath.units.metersToInches(self.current_bot_pose_target[1])
-        rotation = self.current_bot_pose_target[5]
+    def lined_up(self):
+        x_value = wpimath.units.metersToInches(self.current_target_pose[0])
+        y_value = wpimath.units.metersToInches(self.current_target_pose[1])
+        rotation = self.current_target_pose[4]
         if phoenix6.utils.is_simulation():
             return True
-        if abs(x_value - 12) <= 1:
-            if  abs(y_value - offset) <= 1:
-                if abs(rotation) <= 2:
-                    return True
+        
+        if self.list_check(self.current_target_pose) and abs(x_value - 12) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 2:
+            return True
         return False
     
-    
-    def position_difference(self, offset):
-        x_value = wpimath.units.metersToInches(self.current_bot_pose_target[0])
-        y_value = wpimath.units.metersToInches(self.current_bot_pose_target[1])
-        rotation = self.current_bot_pose_target[5]
-
-        horizontal = offset # inches left/right (left is positive due to coordinate system)
-        
-        forward = -12 # inches away from wall
-
-        return [x_value + forward, y_value + horizontal, rotation]
-    
     def telemetry(self):
-        self.lined_up_publish.set(self.lined_up(6.47))
-        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_bot_pose_target[0]), 
-                                    wpimath.units.metersToInches(self.current_bot_pose_target[1]), 
-                                    wpimath.units.metersToInches(self.current_bot_pose_target[5])]
-        self.bot_pose_target_var = self.botpose_targetspacesub.get()
+        self.lined_up_publish.set(self.lined_up())
+        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_target_pose[0]), 
+                                    wpimath.units.metersToInches(self.current_target_pose[1]), 
+                                    wpimath.units.metersToInches(self.current_target_pose[4])]
         self.bot_pose_publish.set(self.bot_pose_target_var)
         
             
@@ -124,56 +108,45 @@ class LineUpAprilTagCommand(commands2.Command):
     def __init__(self,
                  drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                  limelight: Limelight,
-                 offset: float):
+                ):
         self.drive_train = drive_train
         self.limelight = limelight
-        self.offset = offset
 
     def execute(self):
-        lock_on = self.limelight.position_difference(self.offset)
-        x = lock_on[0]
-        y = lock_on[1]
-        z = lock_on[2]
+        x = self.limelight.current_target_pose[0]
+        y = self.limelight.current_target_pose[1]
+        z = self.limelight.current_target_pose[4]
         forward = 0
         horizontal = 0
         rotation = 0
         if x > 0:
-            forward = -0.2
-        elif x < 0:
             forward = 0.2
+        elif x < 0:
+            forward = -0.2
         if y > 0:
-            horizontal = -0.2
-        elif y < 0:
             horizontal = 0.2
+        elif y < 0:
+            horizontal = -0.2
         if z < 0:
-            rotation = 0.5
+            rotation = -1.5
         elif z > 0:
-            rotation = -0.5
+            rotation = 1.5
+
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
-        self.drive_train.apply_request(drive_request).execute()
+        self.drive_train.apply_request(drive_request).schedule()
 
     
     def isFinished(self):
-        return self.limelight.lined_up(self.offset)
+        return self.limelight.lined_up()
     
     def end(self, interrupted):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).execute()
+        self.drive_train.apply_request(drive_request).schedule()
 
-def line_up_left_post_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                              limelight: Limelight,
+def line_up_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
+                    limelight: Limelight,
                             ):
-    return LineUpAprilTagCommand(drive_train, limelight, CORAL_POST_OFFSET)
-
-def line_up_right_post_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                              limelight: Limelight,
-                            ):
-    return LineUpAprilTagCommand(drive_train, limelight, -CORAL_POST_OFFSET)
-
-def line_up_for_coral_pickup(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                              limelight: Limelight,
-                            ):
-    return LineUpAprilTagCommand(drive_train, limelight, 0.0)
+    return LineUpAprilTagCommand(drive_train, limelight)
 
 class DriveStraightCommand(commands2.Command):
 
@@ -194,7 +167,7 @@ class DriveStraightCommand(commands2.Command):
 
     def execute(self):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(self.speed).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).execute()
+        self.drive_train.apply_request(drive_request).schedule()
 
     
     def isFinished(self):
@@ -205,13 +178,53 @@ class DriveStraightCommand(commands2.Command):
     
     def end(self, interrupted):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).execute()
+        self.drive_train.apply_request(drive_request).schedule()
+
+class DriveSidewaysCommand(commands2.Command):
+
+    def __init__(self, 
+                 drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                 limelight: Limelight,
+                 distance: float,
+                 speed: float
+                 ):
+        self.drive_train = drive_train
+        self.limelight = limelight
+        self.distance = distance
+        self.speed = speed
+
+    def initialize(self):
+        self.start_position = self.drive_train.get_state().pose
+        self.end_position = self.start_position.transformBy(wpimath.geometry.Transform2d.fromFeet(0.0, self.distance, 0))
+
+    def execute(self):
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(self.speed).with_rotational_rate(0)
+        self.drive_train.apply_request(drive_request).schedule()
+
+    
+    def isFinished(self):
+        t = self.end_position - self.drive_train.get_state().pose
+        distance_squared = wpimath.units.metersToInches(t.X() * t.X() + t.Y() * t.Y())
+        close = 1 # inches
+        return distance_squared < close * close
+    
+    def end(self, interrupted):
+        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        self.drive_train.apply_request(drive_request).schedule()
+
 
 def drive_forward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                           limelight: Limelight):
     distance = 11.0/12.0
     speed = 0.5
     return DriveStraightCommand(drive_train, limelight, distance, speed)
+
+def drive_sideways_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
+                          limelight: Limelight,
+                          offset: float):
+    distance = offset
+    speed = 0.5
+    return DriveSidewaysCommand(drive_train, limelight, distance, speed)
 
 def drive_backward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                            limelight: Limelight):

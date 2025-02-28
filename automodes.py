@@ -86,7 +86,7 @@ def get_test_auto_lineup_to_coral(drivetrain: subsystems.command_swerve_drivetra
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.line_up_left_post_command(drivetrain, front_limelight)
+    return subsystems.limelight.line_up_command(drivetrain, front_limelight)
 
 def get_test_auto_drive_forward_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -95,6 +95,15 @@ def get_test_auto_drive_forward_coral(drivetrain: subsystems.command_swerve_driv
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
     return subsystems.limelight.drive_forward_command(drivetrain, front_limelight)
+
+
+def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    return subsystems.limelight.drive_sideways_command(drivetrain, front_limelight, subsystems.limelight.CORAL_POST_OFFSET/12.0)
 
 def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -119,6 +128,14 @@ def get_test_auto_wrist_position(drivetrain: subsystems.command_swerve_drivetrai
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
     return subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.top)
+
+def get_test_auto_offset_apriltag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    return offset_april_tag(drivetrain, front_limelight)
 
 def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -257,12 +274,6 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
                 ):
     cmds = commands2.SequentialCommandGroup()
 
-    # Line up according to the limelight AprilTag data.
-    alignCoral = subsystems.limelight.line_up_left_post_command(drivetrain, limelight).withTimeout(1.0)
-    if right_post:
-        alignCoral = subsystems.limelight.line_up_right_post_command(drivetrain, limelight).withTimeout(1.0)
-    cmds.addCommands(alignCoral)
-
     # Move elevator up to position
     wrist_speed = 0.20
     moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position).withTimeout(2.0)
@@ -299,7 +310,7 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds = commands2.SequentialCommandGroup()
 
     # Line up according to the limelight AprilTag data.
-    alignAprilTag = subsystems.limelight.line_up_for_coral_pickup(drivetrain, limelight)
+    alignAprilTag = subsystems.limelight.line_up_command(drivetrain, limelight)
     cmds.addCommands(alignAprilTag)
 
     # Move forward blindly
@@ -322,11 +333,13 @@ class AutoDashboard():
         "hubrisblue": submit_blue,
         "test_backward_pickup": get_test_auto_drive_backward_pickup,
         "test_forward_coral": get_test_auto_drive_forward_coral,
+        "test_sideways_coral": get_test_auto_drive_sideways_coral,
         "test_elevator_position": get_test_auto_elevator_position,
         "test_wrist_position": get_test_auto_wrist_position,
         "test_place_coral": get_test_auto_place_coral,
         "test_lineup_coral": get_test_auto_lineup_to_coral,
-        "forward": forward
+        "test_offset_apriltag": get_test_auto_offset_apriltag,
+        "forward": forward,
        }
     def __init__(self):
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
@@ -335,13 +348,11 @@ class AutoDashboard():
         self.options_publisher = self.optionstopic.publish()
         self.options_publisher.set(list(self.auto_map.keys()))
 
-
         self.selectedtopic = self.table.getStringTopic("selected")
         self.selected_publisher = self.selectedtopic.publish()
         self.selected_publisher.set("redleft")
         self.selected_subscriber = self.selectedtopic.subscribe("redleft")
-        self.current_auto = self.selected_subscriber.get()
-        
+        self.current_auto = self.selected_subscriber.get()        
 
     def update(self):
         self.options_publisher.set(list(self.auto_map.keys()))
@@ -381,7 +392,8 @@ def schedule_drive_pickup(drivetrain, limelight, position, transition_speed, ele
 
 def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transition_speed, position):
     cmds = commands2.SequentialCommandGroup()
-    cmds.addCommands(drive_to_pose(position, transition_speed))
+    cmds.addCommands(drive_to_pose(position, 0.0))
+    #cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
@@ -392,3 +404,17 @@ def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transitio
         False))
     return cmds
     
+def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
+                     limelight: subsystems.limelight.Limelight,
+                     ) -> commands2.Command:
+    cmds = commands2.SequentialCommandGroup()
+
+    # Line up according to the limelight AprilTag data.
+    alignAprilTag = subsystems.limelight.line_up_command(drivetrain, limelight).withTimeout(1.0)
+    cmds.addCommands(alignAprilTag)
+
+    # drive sideways go line up with the coral post
+    alignCoral = subsystems.limelight.drive_sideways_command(drivetrain, limelight, 6.47/12.0).withTimeout(1.0)
+    cmds.addCommands(alignCoral)
+
+    return cmds

@@ -89,8 +89,6 @@ class RobotContainer:
 
         # self.solenoids = subsystems.solenoids.Solenoids()
 
-
-
         self.auto_dashboard = automodes.AutoDashboard()
 
         self.periodic_timer = wpilib.Timer()
@@ -274,7 +272,7 @@ class RobotContainer:
             lambda state: self._logger.telemeterize(state)
         )
         self._driver_joystick.a().whileTrue(
-            subsystems.limelight.LineUpAprilTagCommand(self.drivetrain, self.front_limelight, False)
+            subsystems.limelight.LineUpAprilTagCommand(self.drivetrain, self.front_limelight)
         )
         self._driver_joystick.b().whileTrue(
             subsystems.limelight.drive_forward_command(self.drivetrain, self.front_limelight)
@@ -331,4 +329,5 @@ class RobotContainer:
         self.periodic_publish.set(self.periodic_timer.get())
         self.periodic_timer.reset()
         self.front_limelight.telemetry()
+
         
