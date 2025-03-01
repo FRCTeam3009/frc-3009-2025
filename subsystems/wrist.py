@@ -18,7 +18,7 @@ class Wrist(commands2.Subsystem):
 
         self.coral_tip_motor = phoenix5.TalonSRX(TunerConstants.coral_tip_id)
 
-        self.up_wrist_limit = 0.13
+        self.up_wrist_limit = 0.11
         self.down_wrist_limit = 0.0
 
         self.top_sensor = wpilib.DigitalInput(3)
@@ -168,8 +168,8 @@ class CoralWristToPosition(commands2.Command):
     top = 0.02
     middle = 0.065
     bottom = 0.065
-    platform = 0.082
-    pickup = 0.11
+    platform = 0.10
+    pickup = 0.10
     def __init__(self, wrist: Wrist, position: float, speed: float):
         self.wrist = wrist
         self.position = position

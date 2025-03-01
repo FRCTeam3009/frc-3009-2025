@@ -102,9 +102,14 @@ def forward_right_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandS
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    approx_start = Pose2d(8, 2, Rotation2d.fromDegrees(180))
+    approx_start = Pose2d(7.5, 2, Rotation2d.fromDegrees(180))
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[26])
+    cmds = commands2.SequentialCommandGroup()
+    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
+    schedule_coral = schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[26], coral_score)
+    cmds.addCommands(WaitCommand(drivetrain))
+    cmds.addCommands(schedule_coral)
+    return cmds
 
 def forward_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -135,7 +140,12 @@ def forward_right_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSw
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 6, 0)
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[28])
+    cmds = commands2.SequentialCommandGroup()
+    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
+    schedule_coral = schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[28], coral_score)
+    cmds.addCommands(WaitCommand(drivetrain))
+    cmds.addCommands(schedule_coral)
+    return cmds
 
 def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -348,8 +358,8 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     # Move elevator up to position
     wrist_speed = 0.20
     moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position).withTimeout(2.0)
-    moveBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(2.0).alongWith(moveElevatorToCoralPosition)
-    cmds.addCommands(moveBetter)
+    #moveBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(2.0).alongWith(moveElevatorToCoralPosition)
+    cmds.addCommands(moveElevatorToCoralPosition)
     # Move the wrist up to position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position, wrist_speed).withTimeout(1.0)
     cmds.addCommands(moveWrist)
@@ -428,8 +438,8 @@ class AutoDashboard():
 
         self.selectedtopic = self.table.getStringTopic("selected")
         self.selected_publisher = self.selectedtopic.publish()
-        self.selected_publisher.set("noob_forward")
-        self.selected_subscriber = self.selectedtopic.subscribe("noob_forward")
+        self.selected_publisher.set("use_right_blue")
+        self.selected_subscriber = self.selectedtopic.subscribe("use_right_blue")
         self.current_auto = self.selected_subscriber.get()        
 
     def update(self):
@@ -458,7 +468,7 @@ class WaitCommand(commands2.Command):
         self.timer.start()
 
     def isFinished(self):
-        if self.timer.hasElapsed(3):
+        if self.timer.hasElapsed(9):
             return True
         return False
     
