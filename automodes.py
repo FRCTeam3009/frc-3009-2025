@@ -38,6 +38,10 @@ positions[22] = Pose2d(5.68, 2.14, Rotation2d.fromDegrees(120)) # Blue Coral
 
 positions[23] = Pose2d(11.76, 4.21, Rotation2d.fromDegrees(0)) #red
 positions[24] = Pose2d(5.79, 3.87, Rotation2d.fromDegrees(180)) #blue
+positions[25] = Pose2d(5.00, 5.27, Rotation2d.fromDegrees(-120)) #blueleft
+positions[26] = Pose2d(5.00, 2.85, Rotation2d.fromDegrees(120)) #blue right
+positions[27] = Pose2d(12.55, 2.82, Rotation2d.fromDegrees(60)) #red left
+positions[28] = Pose2d(12.57, 5.24, Rotation2d.fromDegrees(-60)) #red right
 
 
 
@@ -79,7 +83,28 @@ def forward_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
                      ) -> commands2.Command:
     approx_start = Pose2d(8, 4, Rotation2d.fromDegrees(180))
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[24])
+    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[24], coral_score)
+
+def forward_left_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(8, 6, Rotation2d.fromDegrees(180))
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[25])
+
+def forward_right_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(8, 2, Rotation2d.fromDegrees(180))
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[26])
 
 def forward_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -89,17 +114,28 @@ def forward_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 4, 0)
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[23])
+    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[23], coral_score)
 
-'''def forward_left_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+def forward_left_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    approx_start = Pose2d(10, 4, 0)
+    approx_start = Pose2d(10, 2, 0)
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[23])'''
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[27])
+
+def forward_right_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(10, 6, 0)
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[28])
 
 def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -363,6 +399,10 @@ class AutoDashboard():
         "noob_forward": noob_auto_drive_straight_forward,
         "use_blue": forward_blue,
         "use_red": forward_red,
+        "use_left_red": forward_left_red,
+        "use_right_red": forward_right_red,
+        "use_left_blue": forward_left_blue,
+        "use_right_blue": forward_right_blue,
         "redleft": get_red_auto_1,
         "redright": get_red_auto_2,
         "blueleft": get_blue_auto_1,
@@ -428,7 +468,7 @@ def schedule_drive_pickup(drivetrain, limelight, position, transition_speed, ele
     cmds.addCommands(pickup_coral(drivetrain, limelight, elevator, wrist))
     return cmds
 
-def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transition_speed, position):
+def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transition_speed, position, coral_score = subsystems.elevator.MoveElevatorToPosition.middle):
     cmds = commands2.SequentialCommandGroup()
     cmds.addCommands(drive_to_pose(position, 0.0))
     #cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
@@ -436,9 +476,9 @@ def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transitio
         drivetrain, 
         front_limelight, 
         elevator, 
-        subsystems.elevator.MoveElevatorToPosition.middle,
+        coral_score,
         wrist, 
-        subsystems.wrist.CoralWristToPosition.middle, 
+        coral_score, 
         False))
     return cmds
     
