@@ -34,6 +34,8 @@ class RobotContainer:
     periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
     subsystems, commands, and button mappings) should be declared here.
     """
+    NORMAL_SPEED = 0.5
+    TURBO_SPEED = 1.0
 
     def __init__(self) -> None:
         self._max_speed = (
@@ -114,7 +116,7 @@ class RobotContainer:
         
         self.front_limelight.update_command().schedule()
         self.back_limelight.update_command().schedule()
-        self.front_limelight.odometry_command().schedule()
+        #self.front_limelight.odometry_command().schedule()
 
         self.drivetrain.setDefaultCommand(
             # Drivetrain will execute this command periodically
@@ -133,12 +135,23 @@ class RobotContainer:
             )
         )
 
+    def set_turbo_speed(self):
+        self.speed_limit = RobotContainer.TURBO_SPEED
+        print(self.speed_limit)
+
+    def set_normal_speed(self):
+        self.speed_limit = RobotContainer.NORMAL_SPEED
+        print(self.speed_limit)
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by
         instantiating a :GenericHID or one of its subclasses (Joystick or XboxController),
         and then passing it to a JoystickButton.
         """
+        self._driver_joystick.rightTrigger().whileTrue(
+            commands2.cmd.run(self.set_turbo_speed).finallyDo(lambda interrupted: self.set_normal_speed())
+        )
 
         # Note that X is defined as forward according to WPILib convention,
         # and Y is defined as to the left according to WPILib convention.

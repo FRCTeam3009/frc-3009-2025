@@ -163,7 +163,7 @@ class DriveStraightCommand(commands2.Command):
 
     def initialize(self):
         self.start_position = self.drive_train.get_state().pose.X()
-        self.end_position = self.start_position.X() + self.distance
+        self.end_position = self.start_position + self.distance
 
     def execute(self):
         drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(self.speed).with_velocity_y(0).with_rotational_rate(0)

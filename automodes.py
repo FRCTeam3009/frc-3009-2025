@@ -36,6 +36,9 @@ positions[20] = Pose2d(5.55, 5.73, Rotation2d.fromDegrees(-120)) # Blue Coral
 positions[21] = Pose2d(6.35, 3.99, Rotation2d.fromDegrees(180)) # Blue Coral
 positions[22] = Pose2d(5.68, 2.14, Rotation2d.fromDegrees(120)) # Blue Coral
 
+positions[23] = Pose2d(11.76, 4.21, Rotation2d.fromDegrees(0)) #red
+positions[24] = Pose2d(5.79, 3.87, Rotation2d.fromDegrees(180)) #blue
+
 
 
 class AutoCommand():
@@ -58,13 +61,45 @@ def pathplanner_constraints():
         wpimath.units.rotationsToRadians(0.75), 
     )
 
-def forward(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+def noob_auto_drive_straight_forward(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, wpimath.units.feet(4.0), 0.3)
+    
+    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, wpimath.units.meters(1.5), 0.25)
+
+
+def forward_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(8, 4, Rotation2d.fromDegrees(180))
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[24])
+
+def forward_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(10, 4, 0)
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[23])
+
+'''def forward_left_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     ) -> commands2.Command:
+    approx_start = Pose2d(10, 4, 0)
+    drivetrain.reset_pose(approx_start)
+    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, 0.5, positions[23])'''
 
 def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -277,28 +312,28 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     # Move elevator up to position
     wrist_speed = 0.20
     moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, elevator_position).withTimeout(2.0)
-    moveBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).alongWith(moveElevatorToCoralPosition)
+    moveBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(2.0).alongWith(moveElevatorToCoralPosition)
     cmds.addCommands(moveBetter)
     # Move the wrist up to position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, wrist_position, wrist_speed).withTimeout(1.0)
     cmds.addCommands(moveWrist)
     if wrist_position == subsystems.wrist.CoralWristToPosition.top:
-        tip_up = subsystems.wrist.TipCommand(wrist)
+        tip_up = subsystems.wrist.TipCommand(wrist).withTimeout(1.0)
         cmds.addCommands(tip_up)
     # Move forward blindly to fill the gap where we lose sight of the april tag.
-    driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight).withTimeout(3.0)
-    cmds.addCommands(driveForward)
+    #driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight).withTimeout(3.0)
+    #cmds.addCommands(driveForward)
 
     # Shoot the coral out onto the post
     shootCoral = subsystems.wrist.CoralOutCommand(wrist, lambda: 1.0).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
-    driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight).withTimeout(3.0)
-    cmds.addCommands(driveBackward)
+    #driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight).withTimeout(3.0)
+    #cmds.addCommands(driveBackward)
     # Move the elevator back down to origin.
-    moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(1.0)
-    moveElevatorBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(1.0).alongWith(moveElevatorToFloor)
-    cmds.addCommands(moveElevatorBetter)
+    #moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(1.0)
+    #moveElevatorBetter = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, wrist_speed).withTimeout(1.0).alongWith(moveElevatorToFloor)
+    #cmds.addCommands(moveElevatorBetter)
 
     return cmds
 
@@ -325,6 +360,9 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
 
 class AutoDashboard():
     auto_map = {
+        "noob_forward": noob_auto_drive_straight_forward,
+        "use_blue": forward_blue,
+        "use_red": forward_red,
         "redleft": get_red_auto_1,
         "redright": get_red_auto_2,
         "blueleft": get_blue_auto_1,
@@ -339,7 +377,7 @@ class AutoDashboard():
         "test_place_coral": get_test_auto_place_coral,
         "test_lineup_coral": get_test_auto_lineup_to_coral,
         "test_offset_apriltag": get_test_auto_offset_apriltag,
-        "forward": forward,
+        
        }
     def __init__(self):
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
@@ -350,8 +388,8 @@ class AutoDashboard():
 
         self.selectedtopic = self.table.getStringTopic("selected")
         self.selected_publisher = self.selectedtopic.publish()
-        self.selected_publisher.set("redleft")
-        self.selected_subscriber = self.selectedtopic.subscribe("redleft")
+        self.selected_publisher.set("noob_forward")
+        self.selected_subscriber = self.selectedtopic.subscribe("noob_forward")
         self.current_auto = self.selected_subscriber.get()        
 
     def update(self):
@@ -393,7 +431,7 @@ def schedule_drive_pickup(drivetrain, limelight, position, transition_speed, ele
 def schedule_coral_place(drivetrain, front_limelight, elevator, wrist, transition_speed, position):
     cmds = commands2.SequentialCommandGroup()
     cmds.addCommands(drive_to_pose(position, 0.0))
-    cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
+    #cmds.addCommands(offset_april_tag(drivetrain, front_limelight))
     cmds.addCommands(place_coral(
         drivetrain, 
         front_limelight, 
