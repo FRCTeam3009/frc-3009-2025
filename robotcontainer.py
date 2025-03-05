@@ -12,6 +12,7 @@ from commands2.sysid import SysIdRoutine
 from generated.tuner_constants import TunerConstants
 import subsystems.climber
 import subsystems.controller
+import subsystems.drive_robot_relative
 import subsystems.mock_drivetrain
 import subsystems.shooter
 import subsystems.solenoids
@@ -105,33 +106,14 @@ class RobotContainer:
 
         # Configure the button bindings
         self.configureButtonBindings()
-        self.default_commands()
 
-    def default_commands(self):
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.wrist, subsystems.wrist.HoldPositionCommand(self.wrist))
         
         self.front_limelight.update_command().schedule()
         self.back_limelight.update_command().schedule()
-        #self.front_limelight.odometry_command().schedule()
-
-        self.drivetrain.setDefaultCommand(
-            # Drivetrain will execute this command periodically
-            self.drivetrain.apply_request(
-                lambda: (
-                    self._drive.with_velocity_x(
-                        -self._driver_joystick.getLeftY() * self._max_speed * self.speed_limit
-                    )  # Drive forward with negative Y (forward)
-                    .with_velocity_y(
-                        -self._driver_joystick.getLeftX() * self._max_speed * self.speed_limit
-                    )  # Drive left with negative X (left)
-                    .with_rotational_rate(
-                        -self._driver_joystick.getRightX() * self._max_angular_rate * self.speed_limit
-                    )  # Drive counterclockwise with negative X (left)
-                )
-            )
-        )
+        self.front_limelight.odometry_command().schedule()
 
     def set_turbo_speed(self):
         self.speed_limit = RobotContainer.TURBO_SPEED
@@ -287,7 +269,7 @@ class RobotContainer:
             subsystems.limelight.LineUpAprilTagCommand(self.drivetrain, self.front_limelight)
         )
         self._driver_joystick.b().whileTrue(
-            subsystems.limelight.drive_forward_command(self.drivetrain, self.front_limelight)
+            subsystems.drive_robot_relative.drive_forward_command(self.drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, self.speed_limit)
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(

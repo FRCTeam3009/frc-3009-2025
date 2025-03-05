@@ -6,10 +6,8 @@ import wpimath.geometry
 import wpimath.units
 import subsystems.command_swerve_drivetrain
 import wpimath
-import time
+import subsystems.drive_robot_relative
 import subsystems.limelight_positions
-
-CORAL_POST_OFFSET = wpimath.units.inchesToMeters(6.47) # inches offset from center of AprilTag
 
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
@@ -30,13 +28,6 @@ class Limelight(object):
 
         self.smooth_botpose = subsystems.limelight_positions.SmoothPosition()
         self.smooth_targetpose = subsystems.limelight_positions.SmoothPosition()
-
-        self.drive_robot_relative = (
-            phoenix6.swerve.requests.RobotCentric()
-            .with_drive_request_type(
-                phoenix6.swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
-            )
-        )
 
         self.lined_up_topic = self.table.getBooleanTopic("test lined up")
         self.lined_up_publish = self.lined_up_topic.publish()
@@ -114,7 +105,7 @@ class LineUpAprilTagCommand(commands2.Command):
         elif r > 5:
             rotation = -0.5
 
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
+        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
         self.drive_train.apply_request(drive_request).schedule()
 
     
@@ -122,91 +113,10 @@ class LineUpAprilTagCommand(commands2.Command):
         return self.limelight.lined_up()
     
     def end(self, interrupted):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
+        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
         self.drive_train.apply_request(drive_request).schedule()
 
 def line_up_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                     limelight: Limelight,
                             ):
     return LineUpAprilTagCommand(drive_train, limelight)
-
-class DriveStraightCommand(commands2.Command):
-
-    def __init__(self, 
-                 drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
-                 limelight: Limelight,
-                 distance: float,
-                 speed: float
-                 ):
-        self.drive_train = drive_train
-        self.limelight = limelight
-        self.distance = distance
-        self.speed = speed
-
-    def initialize(self):
-        self.start_position = self.drive_train.get_state().pose.X()
-        self.end_position = self.start_position + self.distance
-
-    def execute(self):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(self.speed).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
-
-    
-    def isFinished(self):
-        diff = self.end_position - self.drive_train.get_state().pose.X()
-        return abs(diff) < wpimath.units.inchesToMeters(1)
-    
-    def end(self, interrupted):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
-
-class DriveSidewaysCommand(commands2.Command):
-
-    def __init__(self, 
-                 drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
-                 limelight: Limelight,
-                 distance: float,
-                 speed: float
-                 ):
-        self.drive_train = drive_train
-        self.limelight = limelight
-        self.distance = distance
-        self.speed = speed
-
-    def initialize(self):
-        self.start_position = self.drive_train.get_state().pose.Y()
-        self.end_position = self.start_position + self.distance
-
-    def execute(self):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(self.speed).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
-
-    
-    def isFinished(self):
-        diff = self.end_position - self.drive_train.get_state().pose.Y()
-        print(str(self.start_position) + " " + str(self.end_position) + " " + str(self.drive_train.get_state().pose.Y()))
-        return abs(diff) < wpimath.units.inchesToMeters(1)
-    
-    def end(self, interrupted):
-        drive_request = lambda: self.limelight.drive_robot_relative.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
-
-
-def drive_forward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                          limelight: Limelight):
-    distance = wpimath.units.inchesToMeters(11.0)
-    speed = 0.5
-    return DriveStraightCommand(drive_train, limelight, distance, speed)
-
-def drive_sideways_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                          limelight: Limelight,
-                          offset: float):
-    distance = offset
-    speed = 0.5
-    return DriveSidewaysCommand(drive_train, limelight, distance, speed)
-
-def drive_backward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                           limelight: Limelight):
-    distance = wpimath.units.inchesToMeters(-11.0)
-    speed = -0.5
-    return DriveStraightCommand(drive_train, limelight, distance, speed)

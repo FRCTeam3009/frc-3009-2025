@@ -169,19 +169,12 @@ class coral_wait(commands2.Command):
     def __init__(self, sensor: typing.Callable[[], bool]):
         self.sensor = sensor
         self.timer = wpilib.Timer()
-        self.leave_timer = wpilib.Timer()
-
-    def initialize(self):
-        self.leave_timer.reset()
-        self.leave_timer.start()
 
     def execute(self):
+        # Just waiting for the sensor value in isFinished()
         pass
 
     def isFinished(self):
-        if self.leave_timer.hasElapsed(5):
-            return True
-        
         if not self.sensor():
             self.timer.stop()
             self.timer.reset()

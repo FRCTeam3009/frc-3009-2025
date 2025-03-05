@@ -3,6 +3,7 @@ import pathplannerlib.auto
 import wpimath.units
 import commands2
 import subsystems.command_swerve_drivetrain
+import subsystems.drive_robot_relative
 import subsystems.elevator
 import subsystems.limelight
 import ntcore
@@ -73,7 +74,7 @@ def noob_auto_drive_straight_forward(drivetrain: subsystems.command_swerve_drive
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
     
-    return subsystems.limelight.DriveStraightCommand(drivetrain, front_limelight, wpimath.units.meters(1.5), 0.25)
+    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, wpimath.units.meters(1.5), 0.25)
 
 
 def forward_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -182,7 +183,7 @@ def get_test_auto_drive_forward_coral(drivetrain: subsystems.command_swerve_driv
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.drive_forward_command(drivetrain, front_limelight)
+    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25)
 
 
 def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -191,7 +192,7 @@ def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_dri
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.drive_sideways_command(drivetrain, front_limelight, subsystems.limelight.CORAL_POST_OFFSET)
+    return subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, 0.25)
 
 def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -199,7 +200,7 @@ def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_dr
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
                      ) -> commands2.Command:
-    return subsystems.limelight.drive_backward_command(drivetrain, back_limelight)
+    return subsystems.drive_robot_relative.drive_backward_command(drivetrain, -1 * subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25)
 
 def get_test_auto_elevator_position(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -382,14 +383,14 @@ def place_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
         tip_up = subsystems.wrist.TipCommand(wrist).withTimeout(1.0)
         cmds.addCommands(tip_up)
     # Move forward blindly to fill the gap where we lose sight of the april tag.
-    #driveForward = subsystems.limelight.drive_forward_command(drivetrain, limelight).withTimeout(3.0)
+    #driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, TODO).withTimeout(3.0)
     #cmds.addCommands(driveForward)
 
     # Shoot the coral out onto the post
     shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: 1.0).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
-    #driveBackward = subsystems.limelight.drive_backward_command(drivetrain, limelight).withTimeout(3.0)
+    #driveBackward = subsystems.drive_robot_relative.drive_backward_command(drivetrain, TODO).withTimeout(3.0)
     #cmds.addCommands(driveBackward)
     # Move the elevator back down to origin.
     #moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0).withTimeout(1.0)
@@ -410,7 +411,7 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds.addCommands(alignAprilTag)
 
     # Move forward blindly
-    driveForward = subsystems.limelight.drive_backward_command(drivetrain, limelight)
+    driveForward = subsystems.drive_robot_relative.drive_backward_command(drivetrain, -1 * subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25)
     cmds.addCommands(driveForward)
 
     # Wait until we receive a coral
@@ -518,7 +519,7 @@ def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     cmds.addCommands(alignAprilTag)
 
     # drive sideways go line up with the coral post
-    alignCoral = subsystems.limelight.drive_sideways_command(drivetrain, limelight, subsystems.limelight.CORAL_POST_OFFSET).withTimeout(1.0)
+    alignCoral = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, 0.25).withTimeout(1.0)
     cmds.addCommands(alignCoral)
 
     return cmds
