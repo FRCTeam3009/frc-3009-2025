@@ -8,6 +8,7 @@ from typing import Callable, overload
 from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Pose2d, Rotation2d
+import commands2
 
 
 class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
@@ -142,13 +143,11 @@ class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):
         arg3=None,
     ):
         Subsystem.__init__(self)
-        try:
-            swerve.SwerveDrivetrain.__init__(
+        swerve.SwerveDrivetrain.__init__(
                 self, drive_motor_type, steer_motor_type, encoder_type,
                 drivetrain_constants, arg0, arg1, arg2, arg3
             )
-        except Exception as e:
-            print("FATAL ERROR CREATING DRIVETRAIN: " + str(e))
+        
 
         self._sim_notifier: Notifier | None = None
         self._last_sim_time: units.second = 0.0

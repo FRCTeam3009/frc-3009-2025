@@ -7,11 +7,11 @@ import wpimath.system.plant
 import wpilib
 import typing
 from generated.tuner_constants import TunerConstants
+import subsystems.shooter
 
 class Wrist(commands2.Subsystem):
     def __init__(self):
         commands2.CommandScheduler.registerSubsystem(self)
-        self.coral_out_motor = phoenix5.TalonSRX(TunerConstants.coral_out_id)
 
         self.coral_wrist_motor = rev.SparkMax(TunerConstants.coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
@@ -54,11 +54,6 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_top2_publish.set(False)
 
         self.is_tip_up = False
-
-    def coral_out(self, speed: float):
-        self.coral_out_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
-        self.coral_out_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
-        self.coral_out_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def coral_wrist(self, speed: float):
         if self.get_wrist_position() > self.up_wrist_limit and speed > 0:
@@ -111,35 +106,6 @@ class Wrist(commands2.Subsystem):
         if not self.top_sensor.get() and not self.bottom_sensor.get():
             return True
         return False
-
-class CoralOutCommand(commands2.Command):
-    def __init__(self, wrist: Wrist, speed: typing.Callable[[], float]):
-        self.wrist = wrist
-        self.speed = speed
-        self.timer = wpilib.Timer()
-        self.sensor = self.wrist.coral_sensor_shot
-
-        self.command_timer = wpilib.Timer()
-        self.ntcore_instance = ntcore.NetworkTableInstance.getDefault()
-        self.commands = self.ntcore_instance.getTable("commands")
-        self.command_topic = self.commands.getFloatTopic("CoralOut")
-        self.command_publish = self.command_topic.publish()
-        self.command_publish.set(0.0)
-
-    def initialize(self):
-        self.timer.reset()
-        self.timer.start()
-        self.command_timer.reset()
-        self.command_timer.start()
-
-    def execute(self):
-        self.wrist.coral_out(self.speed())
-        self.command_publish.set(self.command_timer.get())
-
-    def end(self, interrupted):
-        self.wrist.coral_out(0)
-        self.timer.stop()
-        self.timer.reset()
 
 class CoralWristCommand(commands2.Command):
     def __init__(self, wrist: Wrist, speed: typing.Callable[[], bool]):

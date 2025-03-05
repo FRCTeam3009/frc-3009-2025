@@ -13,6 +13,7 @@ from generated.tuner_constants import TunerConstants
 import subsystems.climber
 import subsystems.controller
 import subsystems.mock_drivetrain
+import subsystems.shooter
 import subsystems.solenoids
 import subsystems.elevator
 import subsystems.wrist
@@ -71,18 +72,15 @@ class RobotContainer:
 
         self._operator_joystick = subsystems.controller.Controller(1)
 
-        self.drivetrain = None
-        try:
-            self.drivetrain = TunerConstants.create_drivetrain()
-        except Exception as e:
-            print("FATAL ERROR CREATING DRIVETRAIN FROM TUNERCONSTANTS: " + str(e))
-            self.drivetrain = subsystems.mock_drivetrain.MockDriveTrain()
+        self.drivetrain = TunerConstants.create_drivetrain()
 
         self.drivetrain.reset_pose(wpimath.geometry.Pose2d(10, 2, 0))
 
         self.elevator = subsystems.elevator.Elevator()
 
         self.wrist = subsystems.wrist.Wrist()
+
+        self.shooter = subsystems.shooter.Shooter()
 
         self.front_limelight = subsystems.limelight.Limelight("limelight-front", self.drivetrain)
         self.back_limelight = subsystems.limelight.Limelight("limelight-back", self.drivetrain)
@@ -263,11 +261,11 @@ class RobotContainer:
         )
 
         commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
-            subsystems.wrist.CoralOutCommand(self.wrist, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis())
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis())
         )
 
         commands2.button.Trigger(self._operator_joystick.is_right_trigger_pressed).whileTrue(
-            subsystems.wrist.CoralOutCommand(self.wrist, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
             subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed)
@@ -333,7 +331,7 @@ class RobotContainer:
         :returns: the command to run in autonomous
         """
 
-        autoMode = self.auto_dashboard.get_current_auto_builder(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator, self.wrist)
+        autoMode = self.auto_dashboard.get_current_auto_builder(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator, self.wrist, self.shooter)
         return autoMode            
     
     def telemetry(self):
