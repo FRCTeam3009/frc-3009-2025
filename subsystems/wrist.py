@@ -76,14 +76,16 @@ class Wrist(commands2.Subsystem):
         self.coral_tip_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
         self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
         return
-        if self.get_tip_position() > CoralTipToPositionCommand.up and speed > 0:
-            self.coral_tip_motor.set(0)
-        elif self.get_tip_position() < CoralTipToPositionCommand.flat and speed < 0:
-            self.coral_tip_motor.set(0)
-        else:
-            self.coral_tip_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
-            self.coral_tip_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
-            self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
+        # TODO determine end positions for the tipping motor if possible.
+        # TODO this either needs limit switches or an encoder connected.
+        # if self.get_tip_position() > CoralTipToPositionCommand.up and speed > 0:
+        #     self.coral_tip_motor.set(0)
+        # elif self.get_tip_position() < CoralTipToPositionCommand.flat and speed < 0:
+        #     self.coral_tip_motor.set(0)
+        # else:
+        #     self.coral_tip_motor.set(phoenix5.TalonSRXControlMode.PercentOutput, speed)
+        #     self.coral_tip_motor.getSimCollection().addQuadraturePosition(round(speed * 10))
+        #     self.coral_tip_motor.getSimCollection().setQuadratureVelocity(round(speed * 10))
 
     def telemetry(self):
         self.wrist_publish.set([self.coral_wrist_motor.getEncoder().getPosition(), self.coral_wrist_motor.getAbsoluteEncoder().getPosition()])

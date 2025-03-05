@@ -1,27 +1,12 @@
 import phoenix6.units
 import commands2
 import wpilib
-import wpimath
 import phoenix6.hardware
-import phoenix5
 import time
-import rev
 import wpilib.simulation
-import wpimath.system
-import wpimath.system.plant
 import typing
 import ntcore
 from generated.tuner_constants import TunerConstants
-
-# TODO we'll want to test the april tag odometry to see if we need to customize it at all
-# (e.g. does it think we teleport around the field or does it update pretty smoothly.)
-
-# TODO test the auto modes on a full size field.
-
-# TODO errors with the robot relative drive if there are any issues remember this
-
-#TODO update elevator map values
-
 
 class Elevator(commands2.Subsystem):
 

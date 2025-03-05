@@ -7,28 +7,29 @@ import wpimath.units
 import subsystems.command_swerve_drivetrain
 import wpimath
 import time
-import wpilib
+import subsystems.limelight_positions
 
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(6.47) # inches offset from center of AprilTag
 
-
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
-        default_value = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        # tx, ty, tz, rx, ry, rz, latency, tag count, tag span, average distance, average area
-
+        # [forward, horizontal, vertical, roll, pitch, yaw, latency, tag count, tag span, average distance, average area]
 
         self.nt_instance = NetworkTableInstance.getDefault()
         self.table = self.nt_instance.getTable(name)
-        self.botposetopic = self.table.getDoubleArrayTopic("botpose")
-        self.botposesub = self.botposetopic.subscribe(default_value)
+        # NOTE Use pose2d_from_botpose() to make this easier to deal with.
+        self.botposetopic = self.table.getDoubleArrayTopic("botpose_wpiblue")
+        self.botposesub = self.botposetopic.subscribe([])
         self.drive_train = drive_train
 
-        self.current_bot_pose_field = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.current_target_pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
+        # NOTE Target pose in robot space returns [horizontal, vertical, forward, pitch, yaw, roll].
+        # This is NOT CONSISTENT with the bot pose in field space values.
+        # Use pose2d_from_targetpose() to make this easier to deal with.
         self.targetpose_botspacetopic = self.table.getDoubleArrayTopic("targetpose_robotspace")
-        self.targetpose_botspacesub = self.targetpose_botspacetopic.subscribe([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) # tx, ty, tz, rx, ry, rz
+        self.targetpose_botspacesub = self.targetpose_botspacetopic.subscribe([])
+
+        self.smooth_botpose = subsystems.limelight_positions.SmoothPosition()
+        self.smooth_targetpose = subsystems.limelight_positions.SmoothPosition()
 
         self.drive_robot_relative = (
             phoenix6.swerve.requests.RobotCentric()
@@ -49,59 +50,39 @@ class Limelight(object):
         return commands2.cmd.run(self.update).repeatedly().ignoringDisable(True)
 
     def update(self):
-        fieldspace = self.botposesub.get()
-        if self.list_check(fieldspace):
-            self.current_bot_pose_field = fieldspace
+        botpose = self.botposesub.get()
+        botpose2d = subsystems.limelight_positions.pose2d_from_targetpose(botpose)
+        self.smooth_botpose.append_pose(botpose2d)
 
         targetpose = self.targetpose_botspacesub.get()
-        if self.list_check(targetpose):
-            self.current_target_pose = targetpose
+        targetpose2d = subsystems.limelight_positions.pose2d_from_targetpose(targetpose)
+        self.smooth_targetpose.append_pose(targetpose2d)
 
     def odometry_command(self) -> commands2.Command:
         return commands2.cmd.run(self.odometry_update).repeatedly().ignoringDisable(True)
     
     def odometry_update(self):
-        botpose = self.current_bot_pose_field
-        if self.list_check(botpose):
-            pose2d = wpimath.geometry.Pose2d(botpose[0], botpose[1], botpose[5])
-            seconds = 0
-            if len(botpose) > 6:
-                latency = botpose[6]
-                latency = latency / 1000.0
-                seconds = time.time() - latency
-            self.drive_train.add_vision_measurement(pose2d, seconds)
-
-    def list_check(self, l):
-        if len(l) < 6:
-            return False
-
-        for value in l:
-            if value != 0.0:
-                return True
-            
-        return False
-
+        self.drive_train.add_vision_measurement(self.smooth_botpose.get_average_pose(), 0.05)
     
     def lined_up(self):
-        x_value = wpimath.units.metersToInches(self.current_target_pose[2])
-        y_value = wpimath.units.metersToInches(self.current_target_pose[0])
-        rotation = self.current_target_pose[4]
+        pose = self.smooth_targetpose.get_average_pose()
+        x_value = wpimath.units.metersToInches(pose.X())
+        y_value = wpimath.units.metersToInches(pose.Y())
+        rotation = pose.rotation().degrees()
         if phoenix6.utils.is_simulation():
             return True
         
-        if self.list_check(self.current_target_pose) and abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
+        if abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
             return True
         return False
     
     def telemetry(self):
         self.lined_up_publish.set(self.lined_up())
-        self.bot_pose_target_var = [wpimath.units.metersToInches(self.current_target_pose[2]), 
-                                    wpimath.units.metersToInches(self.current_target_pose[0]), 
-                                    self.current_target_pose[4]]
+        pose = self.smooth_targetpose.get_average_pose()
+        self.bot_pose_target_var = [wpimath.units.metersToInches(pose.X()), 
+                                    wpimath.units.metersToInches(pose.Y()), 
+                                    pose.rotation().degrees()]
         self.bot_pose_publish.set(self.bot_pose_target_var)
-        
-            
-        
 
 class LineUpAprilTagCommand(commands2.Command):
 
@@ -113,9 +94,10 @@ class LineUpAprilTagCommand(commands2.Command):
         self.limelight = limelight
 
     def execute(self):
-        x = self.limelight.current_target_pose[2]
-        y = self.limelight.current_target_pose[0]
-        r = self.limelight.current_target_pose[4]
+        pose = self.limelight.smooth_targetpose.get_average_pose()
+        x = pose.X()
+        y = pose.Y()
+        r = pose.rotation().degrees()
         forward = 0
         horizontal = 0
         rotation = 0
