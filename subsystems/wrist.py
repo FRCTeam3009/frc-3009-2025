@@ -7,7 +7,6 @@ import wpimath.system.plant
 import wpilib
 import typing
 from generated.tuner_constants import TunerConstants
-import subsystems.shooter
 
 class Wrist(commands2.Subsystem):
     def __init__(self):
@@ -165,29 +164,24 @@ class CoralWristToPosition(commands2.Command):
     def end(self, interrupted):
         self.wrist.coral_wrist(0)
 
-class coral_wait(commands2.Command):
+class CoralWait(commands2.Command):
     def __init__(self, sensor: typing.Callable[[], bool]):
         self.sensor = sensor
         self.timer = wpilib.Timer()
 
     def execute(self):
-        # Just waiting for the sensor value in isFinished()
-        pass
+        if self.sensor():
+            self.timer.start()
+        else:
+            self.timer.reset()
+            self.timer.stop()
 
     def isFinished(self):
-        if not self.sensor():
-            self.timer.stop()
-            self.timer.reset()
-        elif self.sensor():
-            self.timer.start()
-            if self.timer.hasElapsed(0.5):
-                self.timer.stop()
-                self.timer.reset()
-                return True
-        return False
+        return self.timer.hasElapsed(0.5)
 
     def end(self, interrupted):
-        pass
+        self.timer.stop()
+        self.timer.reset()
 
 class CoralTipCommand(commands2.Command):
     def __init__(self, wrist: Wrist, speed: typing.Callable[[], bool]):

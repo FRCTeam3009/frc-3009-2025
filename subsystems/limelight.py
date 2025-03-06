@@ -56,12 +56,13 @@ class Limelight(object):
         self.drive_train.add_vision_measurement(self.smooth_botpose.get_average_pose(), 0.05)
     
     def lined_up(self):
+        if phoenix6.utils.is_simulation():
+            return True
+
         pose = self.smooth_targetpose.get_average_pose()
         x_value = wpimath.units.metersToInches(pose.X())
         y_value = wpimath.units.metersToInches(pose.Y())
         rotation = pose.rotation().degrees()
-        if phoenix6.utils.is_simulation():
-            return True
         
         if abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
             return True
@@ -83,6 +84,9 @@ class LineUpAprilTagCommand(commands2.Command):
                 ):
         self.drive_train = drive_train
         self.limelight = limelight
+
+    def initialize(self):
+        pass
 
     def execute(self):
         pose = self.limelight.smooth_targetpose.get_average_pose()
@@ -106,15 +110,15 @@ class LineUpAprilTagCommand(commands2.Command):
             rotation = -0.5
 
         drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
-        self.drive_train.apply_request(drive_request).schedule()
+        self.drive_train.apply_request(drive_request).execute()
 
     
     def isFinished(self):
         return self.limelight.lined_up()
     
     def end(self, interrupted):
-        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(0).with_velocity_y(0).with_rotational_rate(0)
-        self.drive_train.apply_request(drive_request).schedule()
+        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)
+        self.drive_train.apply_request(drive_request).execute()
 
 def line_up_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
                     limelight: Limelight,
