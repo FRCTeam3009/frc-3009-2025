@@ -113,7 +113,7 @@ class RobotContainer:
         
         self.front_limelight.update_command().schedule()
         self.back_limelight.update_command().schedule()
-        self.front_limelight.odometry_command().schedule()
+        #self.front_limelight.odometry_command().schedule()
 
     def set_turbo_speed(self):
         self.speed_limit = RobotContainer.TURBO_SPEED

@@ -4,6 +4,7 @@ import subsystems.command_swerve_drivetrain
 import wpimath
 import wpimath.units
 import phoenix6.swerve
+import math
 
 FORWARD_OFFSET = wpimath.units.inchesToMeters(11.0) # inches away from the 
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(6.47) # inches offset from center of AprilTag
@@ -31,55 +32,49 @@ class DriveRobotRelativeCommand(commands2.Command):
         self.start_pose : wpimath.geometry.Pose2d
         self.start_pose = None
 
-        self.end_pose : wpimath.geometry.Pose2d
-        self.end_pose = None
 
     def initialize(self):
         self.start_pose = self.drive_train.get_state_copy().pose
-        x = self.start_pose.X() + self.offset.X()
-        y = self.start_pose.Y() + self.offset.Y()
-        r = self.start_pose.rotation().radians() + self.offset.rotation().radians()
-        self.end_pose = wpimath.geometry.Pose2d(x, y, r)
-
-    def execute(self):
+        
+        
         forward = 0.0
         horizontal = 0.0
         rotation = 0.0
 
-        current_pose = self.drive_train.get_state_copy().pose
+        compare_x = self.offset.X()
+        compare_y = self.offset.Y()
+        compare_r = self.offset.rotation().degrees()
 
-        # TODO debugging why it overshoots when trying to do robot relative drive.
-        print("PENGUINS - " + str(self.end_pose.Y()) + " " + str(current_pose.Y()))
-
-        x = self.end_pose.X() - current_pose.X()
-        y = self.end_pose.Y() - current_pose.Y()
-        r = self.end_pose.rotation().degrees() - current_pose.rotation().degrees()
-
-        if x > ONE_INCH:
+        if compare_x > ONE_INCH:
             forward = self.speed
-        elif x < -ONE_INCH:
+        elif compare_x < -ONE_INCH:
             forward = -1 * self.speed
-        if y > ONE_INCH:
+        if compare_y > ONE_INCH:
             horizontal = self.speed
-        elif y < -ONE_INCH:
+        elif compare_y < -ONE_INCH:
             horizontal = -1 * self.speed
-        if r > 5:
+        if compare_r > 3:
             rotation = self.speed
-        elif r < 5:
+        elif compare_r < -3:
             rotation = -1 * self.speed
 
-        rotation = 0.0
-
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
-        self.drive_train.apply_request(drive_request).execute()
+        self.drive_cmd = self.drive_train.apply_request(drive_request)
+        
+    def execute(self):
+        self.drive_cmd.execute()
 
     def isFinished(self):
         current_pose = self.drive_train.get_state_copy().pose
-        x = self.end_pose.X() - current_pose.X()
-        y = self.end_pose.Y() - current_pose.Y()
-        r = self.end_pose.rotation().degrees() - current_pose.rotation().degrees()
-        print("PENGUINS - " + str(x) + " " + str(y) + " " + str(r) + " " + str(TWO_INCHES))
-        return abs(x) < TWO_INCHES and abs(y) < TWO_INCHES and abs(r) < 10
+        x = current_pose.X() - self.start_pose.X()
+        y = current_pose.Y() - self.start_pose.Y()
+        r = current_pose.rotation().degrees() - self.start_pose.rotation().degrees()
+
+        compare_x = self.offset.X() - x
+        compare_y = self.offset.Y() - y
+        compare_r = self.offset.rotation().degrees() - r
+
+        return abs(compare_x) < ONE_INCH and abs(compare_y) < ONE_INCH and abs(compare_r) < 5
     
     def end(self, interrupted):
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)
@@ -95,4 +90,4 @@ def drive_sideways_command(drive_train: subsystems.command_swerve_drivetrain.Com
 
 def drive_backward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, offset: float, speed: float):
     pose = wpimath.geometry.Pose2d(-1 * offset, 0.0, 0.0)
-    return DriveRobotRelativeCommand(drive_train, pose, -1 * speed)
+    return DriveRobotRelativeCommand(drive_train, pose, speed)
