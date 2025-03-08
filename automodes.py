@@ -74,6 +74,7 @@ def noob_auto_drive_straight_forward(drivetrain: subsystems.command_swerve_drive
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     
     return subsystems.drive_robot_relative.drive_forward_command(drivetrain, wpimath.units.meters(1.5), 0.25)
@@ -162,6 +163,7 @@ def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.C
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     return place_coral(
         drivetrain, 
@@ -176,6 +178,7 @@ def get_test_auto_lineup_to_coral(drivetrain: subsystems.command_swerve_drivetra
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     return subsystems.limelight.line_up_command(drivetrain, front_limelight)
 
@@ -212,6 +215,7 @@ def get_test_auto_elevator_position(drivetrain: subsystems.command_swerve_drivet
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     return subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.top)
 
@@ -220,6 +224,7 @@ def get_test_auto_wrist_position(drivetrain: subsystems.command_swerve_drivetrai
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     return subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.top)
 
@@ -228,6 +233,7 @@ def get_test_auto_offset_apriltag(drivetrain: subsystems.command_swerve_drivetra
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     return offset_april_tag(drivetrain, front_limelight)
 
@@ -236,7 +242,7 @@ def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerv
                      back_limelight: subsystems.limelight.Limelight,
                      elevator: subsystems.elevator.Elevator,
                      wrist: subsystems.wrist.Wrist,
-                     shooter: subsystems.shooter.Shooter
+                     shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 2, 0)
     auto_commands = [AutoCommand(positions[11], AutoCommand.drive_place, TRANSITION_SPEED),

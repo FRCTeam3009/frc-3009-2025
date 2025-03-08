@@ -37,6 +37,10 @@ class Limelight(object):
         self.bot_pose_publish = self.bot_pose_topic.publish()
         self.bot_pose_publish.set([0.0, 0.0, 0.0])
 
+        self.offset_topic = self.table.getDoubleArrayTopic("lineup_offset")
+        self.offset_pub = self.offset_topic.publish()
+        self.offset_pub.set([0.0, 0.0, 0.0])
+
     def update_command(self) -> commands2.Command:
         return commands2.cmd.run(self.update).repeatedly().ignoringDisable(True)
 
@@ -60,9 +64,12 @@ class Limelight(object):
             return True
 
         pose = self.smooth_targetpose.get_average_pose()
+        pose = subsystems.limelight_positions.correct_target_pose(pose)
         x_value = wpimath.units.metersToInches(pose.X())
         y_value = wpimath.units.metersToInches(pose.Y())
         rotation = pose.rotation().degrees()
+
+        self.offset_pub.set([x_value, y_value, rotation])
         
         if abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
             return True
@@ -71,6 +78,7 @@ class Limelight(object):
     def telemetry(self):
         self.lined_up_publish.set(self.lined_up())
         pose = self.smooth_targetpose.get_average_pose()
+        pose = subsystems.limelight_positions.correct_target_pose(pose)
         self.bot_pose_target_var = [wpimath.units.metersToInches(pose.X()), 
                                     wpimath.units.metersToInches(pose.Y()), 
                                     pose.rotation().degrees()]
@@ -90,12 +98,16 @@ class LineUpAprilTagCommand(commands2.Command):
 
     def execute(self):
         pose = self.limelight.smooth_targetpose.get_average_pose()
+        pose = subsystems.limelight_positions.correct_target_pose(pose)
+
         x = pose.X()
         y = pose.Y()
         r = pose.rotation().degrees()
+
         forward = 0
         horizontal = 0
         rotation = 0
+
         if x > 0:
             forward = 0.2
         elif x < 0:

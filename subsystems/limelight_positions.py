@@ -29,7 +29,7 @@ class SmoothPosition(object):
         self.pose_list = list[wpimath.geometry.Pose2d]()
 
         n = 0
-        while n < 6:
+        while n < 10:
             self.pose_list.append(wpimath.geometry.Pose2d(0.0, 0.0, 0.0))
             n += 1
 
@@ -63,3 +63,9 @@ class SmoothPosition(object):
         avgr = r / n
 
         return wpimath.geometry.Pose2d(avgx, avgy, avgr)
+    
+def correct_target_pose(pose : wpimath.geometry.Pose2d) -> wpimath.geometry.Pose2d:
+    # Targetpose in robot space appears to need to invert both the rotation and horizontal.
+    r = -1 * pose.rotation().degrees()
+    rotation = wpimath.geometry.Rotation2d.fromDegrees(r)
+    return wpimath.geometry.Pose2d(pose.X(), -1 * pose.Y(), rotation)
