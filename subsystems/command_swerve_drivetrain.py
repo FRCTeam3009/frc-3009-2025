@@ -8,7 +8,6 @@ from typing import Callable, overload
 from wpilib import DriverStation, Notifier, RobotController
 from wpilib.sysid import SysIdRoutineLog
 from wpimath.geometry import Pose2d, Rotation2d
-import commands2
 
 
 class CommandSwerveDrivetrain(Subsystem, swerve.SwerveDrivetrain):

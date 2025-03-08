@@ -4,7 +4,6 @@ import subsystems.command_swerve_drivetrain
 import wpimath
 import wpimath.units
 import phoenix6.swerve
-import math
 
 FORWARD_OFFSET = wpimath.units.inchesToMeters(11.0) # inches away from the 
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(6.47) # inches offset from center of AprilTag
@@ -21,7 +20,7 @@ ROBOT_RELATIVE = (
 class DriveRobotRelativeCommand(commands2.Command):
     def __init__(self, 
                  drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
-                 offset: wpimath.geometry.Pose2d,
+                 offset: wpimath.geometry.Transform2d,
                  speed: float,
                  ):
         self.addRequirements(drive_train)
@@ -32,10 +31,13 @@ class DriveRobotRelativeCommand(commands2.Command):
         self.start_pose : wpimath.geometry.Pose2d
         self.start_pose = None
 
+        self.end_pose : wpimath.geometry.Pose2d
+        self.end_pose = None
+
 
     def initialize(self):
         self.start_pose = self.drive_train.get_state_copy().pose
-        
+        self.end_pose = self.start_pose + self.offset
         
         forward = 0.0
         horizontal = 0.0
@@ -66,28 +68,22 @@ class DriveRobotRelativeCommand(commands2.Command):
 
     def isFinished(self):
         current_pose = self.drive_train.get_state_copy().pose
-        x = current_pose.X() - self.start_pose.X()
-        y = current_pose.Y() - self.start_pose.Y()
-        r = current_pose.rotation().degrees() - self.start_pose.rotation().degrees()
+        diff = self.end_pose - current_pose
 
-        compare_x = self.offset.X() - x
-        compare_y = self.offset.Y() - y
-        compare_r = self.offset.rotation().degrees() - r
-
-        return abs(compare_x) < ONE_INCH and abs(compare_y) < ONE_INCH and abs(compare_r) < 5
+        return abs(diff.X()) < ONE_INCH and abs(diff.Y()) < ONE_INCH and abs(diff.rotation().degrees()) < 5
     
     def end(self, interrupted):
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)
         self.drive_train.apply_request(drive_request).execute()
 
 def drive_forward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, offset: float, speed: float):
-    pose = wpimath.geometry.Pose2d(offset, 0.0, 0.0)
+    pose = wpimath.geometry.Transform2d(offset, 0.0, 0.0)
     return DriveRobotRelativeCommand(drive_train, pose, speed)
 
 def drive_sideways_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, offset: float, speed: float):
-    pose = wpimath.geometry.Pose2d(0.0, offset, 0.0)
+    pose = wpimath.geometry.Transform2d(0.0, offset, 0.0)
     return DriveRobotRelativeCommand(drive_train, pose, speed)
 
 def drive_backward_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, offset: float, speed: float):
-    pose = wpimath.geometry.Pose2d(-1 * offset, 0.0, 0.0)
+    pose = wpimath.geometry.Transform2d(-1 * offset, 0.0, 0.0)
     return DriveRobotRelativeCommand(drive_train, pose, speed)
