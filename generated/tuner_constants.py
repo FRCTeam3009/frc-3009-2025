@@ -21,6 +21,8 @@ class TunerConstants:
 
     climber_speed_constant = 1
 
+    algae_shooter_constant = 0.5
+
     # Both sets of gains need to be tuned to your individual robot
 
     # The steer motor uses any SwerveModule.SteerRequestType control request with the

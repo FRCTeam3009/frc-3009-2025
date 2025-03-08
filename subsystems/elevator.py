@@ -18,6 +18,7 @@ class Elevator(commands2.Subsystem):
 
         self.start_position = self.main_motor.get_position().value_as_double - 1
         self.up_limit = self.start_position + MoveElevatorToPosition.top # NOTE motor moves backwards to "up" limit is negative.
+        self.lower_limit = MoveElevatorToPosition.lower_limit
         self.prev_time = time.time()
 
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
@@ -39,8 +40,7 @@ class Elevator(commands2.Subsystem):
         if self.get_position() <= self.up_limit and speed < 0:
             # Stop the motor if we went too high
             self.main_motor.set(0)
-        elif self.get_position() >= self.start_position and speed > 0:
-            # Stop the motor if we went too low
+        elif self.get_position() >= self.lower_limit and speed > 0:
             self.main_motor.set(0)
         else:
             # Move motor
@@ -109,10 +109,11 @@ class MoveElevatorCommand(commands2.Command):
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    top = -90
+    top = -82.4
     middle = -55
     bottom = -27
     platform = -7.5
+    lower_limit = 8.2
     def __init__(self, elevator: Elevator, position):
         self.elevator = elevator
         self.position = position

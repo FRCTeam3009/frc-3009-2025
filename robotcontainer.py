@@ -10,6 +10,7 @@ import commands2.cmd
 from commands2.sysid import SysIdRoutine
 
 from generated.tuner_constants import TunerConstants
+import subsystems.algae_shooter
 import subsystems.climber
 import subsystems.controller
 import subsystems.drive_robot_relative
@@ -82,6 +83,8 @@ class RobotContainer:
         self.wrist = subsystems.wrist.Wrist()
 
         self.shooter = subsystems.shooter.Shooter()
+
+        self.algae_shooter = subsystems.algae_shooter.AlgaeShooter(self.shooter)
 
         self.front_limelight = subsystems.limelight.Limelight("limelight-front", self.drivetrain)
         self.back_limelight = subsystems.limelight.Limelight("limelight-back", self.drivetrain)
@@ -299,11 +302,11 @@ class RobotContainer:
                     subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top, self.wrist_speed)
                 )
         )
-        self._operator_joystick.joystick.rightBumper().onTrue(
-            subsystems.wrist.TipCommand(self.wrist)
+        self._operator_joystick.joystick.rightBumper().whileTrue(
+            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, TunerConstants.algae_shooter_constant)
         )
-        self._operator_joystick.joystick.leftBumper().onTrue(
-            subsystems.wrist.TipCommand(self.wrist)
+        self._operator_joystick.joystick.leftBumper().whileTrue(
+            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, -TunerConstants.algae_shooter_constant)
         )
 
     
