@@ -113,10 +113,12 @@ class MoveElevatorToPosition(commands2.Command):
     middle = -55
     bottom = -27
     platform = -7.5
+    pickup = -7.5
     lower_limit = 8.2
-    def __init__(self, elevator: Elevator, position):
+    def __init__(self, elevator: Elevator, position : float, speed : float = 0.3):
         self.elevator = elevator
         self.position = position
+        self.speed = speed
         self.addRequirements(self.elevator)
 
         self.command_timer = wpilib.Timer()
@@ -132,9 +134,9 @@ class MoveElevatorToPosition(commands2.Command):
 
     def execute(self):
         if self.elevator.get_position() < self.position:
-            self.elevator.change_height(-0.5)
+            self.elevator.change_height(-self.speed)
         else:
-            self.elevator.change_height(0.5)
+            self.elevator.change_height(self.speed)
 
         self.command_publish.set(self.command_timer.get())
 

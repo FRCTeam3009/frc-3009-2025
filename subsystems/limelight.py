@@ -131,8 +131,3 @@ class LineUpAprilTagCommand(commands2.Command):
     def end(self, interrupted):
         drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)
         self.drive_train.apply_request(drive_request).execute()
-
-def line_up_command(drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain,
-                    limelight: Limelight,
-                            ):
-    return LineUpAprilTagCommand(drive_train, limelight)
