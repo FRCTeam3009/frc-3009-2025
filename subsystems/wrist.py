@@ -8,6 +8,8 @@ import wpilib
 import typing
 from generated.tuner_constants import TunerConstants
 
+SPEED = 0.15
+
 class Wrist(commands2.Subsystem):
     def __init__(self):
         commands2.CommandScheduler.registerSubsystem(self)

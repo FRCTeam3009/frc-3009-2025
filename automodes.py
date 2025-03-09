@@ -1,5 +1,6 @@
 import pathplannerlib.path
 import pathplannerlib.auto
+import wpimath.geometry
 import wpimath.units
 import commands2
 import subsystems.command_swerve_drivetrain
@@ -9,6 +10,7 @@ import subsystems.limelight
 import ntcore
 import wpilib
 import commands2
+import subsystems.limelight_positions
 import subsystems.shooter
 import subsystems.wrist
 from phoenix6 import swerve
@@ -19,8 +21,8 @@ import subsystems.wrist
 
 # Positions for the robot to line up to the April Tags, indexed by April Tag IDs
 positions = {}
-positions[1] = Pose2d(16.40, 1.02, Rotation2d.fromDegrees(-53)) # Red Coral Pickup Left
-positions[2] = Pose2d(16.41, 7.00, Rotation2d.fromDegrees(53)) # Red Coral Pickup Right
+positions[1] = Pose2d(16.44, 1.03, Rotation2d.fromDegrees(-52)) # Red Coral Pickup Left
+positions[2] = Pose2d(16.45, 7.03, Rotation2d.fromDegrees(53)) # Red Coral Pickup Right
 positions[3] = Pose2d(11.48, 7.55, Rotation2d.fromDegrees(90)) # Red side, Blue's Algae
 positions[6] = Pose2d(14.13, 2.23, Rotation2d.fromDegrees(120)) # Red Coral
 positions[7] = Pose2d(14.92, 4.04, Rotation2d.fromDegrees(180)) # Red Coral
@@ -28,8 +30,8 @@ positions[8] = Pose2d(14.00, 5.64, Rotation2d.fromDegrees(-120)) # Red Coral
 positions[9] = Pose2d(12.16, 5.55, Rotation2d.fromDegrees(-60)) # Red Coral
 positions[10] = Pose2d(11.20, 4.00, Rotation2d.fromDegrees(0)) # Red Coral
 positions[11] = Pose2d(12.05, 2.14, Rotation2d.fromDegrees(60)) # Red Coral
-positions[12] = Pose2d(1.18, 1.08, Rotation2d.fromDegrees(-127)) # Blue Coral Pickup Right
-positions[13] = Pose2d(1.13, 6.94, Rotation2d.fromDegrees(127)) # Blue Coral Pickup Left
+positions[12] = Pose2d(1.15, 0.99, Rotation2d.fromDegrees(-127)) # Blue Coral Pickup Right
+positions[13] = Pose2d(1.17, 7.06, Rotation2d.fromDegrees(127)) # Blue Coral Pickup Left
 positions[16] = Pose2d(6.02, 0.52, Rotation2d.fromDegrees(-90)) # Blue Coral
 positions[17] = Pose2d(3.67, 2.25, Rotation2d.fromDegrees(60)) # Blue Coral 
 positions[18] = Pose2d(2.56, 4.03, Rotation2d.fromDegrees(0)) # Blue Coral
@@ -76,7 +78,7 @@ def noob_auto_drive_straight_forward(drivetrain: subsystems.command_swerve_drive
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     
-    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, wpimath.units.meters(1.5), 0.25)
+    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, wpimath.units.meters(1.5), subsystems.drive_robot_relative.NORMAL_SPEED)
 
 
 def forward_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -88,8 +90,8 @@ def forward_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
                      ) -> commands2.Command:
     approx_start = Pose2d(8, 4, Rotation2d.fromDegrees(180))
     drivetrain.reset_pose(approx_start)
-    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[24], shooter, coral_score)
+    cmd = AutoCommand(positions[24], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    return schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
 
 def forward_left_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -100,7 +102,8 @@ def forward_left_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSw
                      ) -> commands2.Command:
     approx_start = Pose2d(8, 6, Rotation2d.fromDegrees(180))
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[25], shooter)
+    cmd = AutoCommand(positions[25], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    return schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
 
 def forward_right_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -112,8 +115,8 @@ def forward_right_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandS
     approx_start = Pose2d(7.5, 2, Rotation2d.fromDegrees(180))
     drivetrain.reset_pose(approx_start)
     cmds = commands2.SequentialCommandGroup()
-    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
-    schedule_coral = schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[26], shooter, coral_score)
+    cmd = AutoCommand(positions[26], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    schedule_coral = schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
     cmds.addCommands(WaitCommand(drivetrain))
     cmds.addCommands(schedule_coral)
     return cmds
@@ -127,8 +130,8 @@ def forward_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 4, 0)
     drivetrain.reset_pose(approx_start)
-    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[23], shooter, coral_score)
+    cmd = AutoCommand(positions[23], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    return schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
 
 def forward_left_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -139,7 +142,8 @@ def forward_left_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 2, 0)
     drivetrain.reset_pose(approx_start)
-    return schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[27], shooter)
+    cmd = AutoCommand(positions[27], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    return schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
 
 def forward_right_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -151,8 +155,8 @@ def forward_right_red(drivetrain: subsystems.command_swerve_drivetrain.CommandSw
     approx_start = Pose2d(10, 6, 0)
     drivetrain.reset_pose(approx_start)
     cmds = commands2.SequentialCommandGroup()
-    coral_score = subsystems.elevator.MoveElevatorToPosition.bottom
-    schedule_coral = schedule_coral_place(drivetrain, front_limelight, elevator, wrist, positions[28], coral_score, shooter)
+    cmd = AutoCommand(positions[28], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
+    schedule_coral = schedule_coral_place(cmd, drivetrain, front_limelight, elevator, wrist, shooter)
     cmds.addCommands(WaitCommand(drivetrain))
     cmds.addCommands(schedule_coral)
     return cmds
@@ -164,13 +168,16 @@ def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.C
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
+    cmd = AutoCommand(positions[1], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
     return place_coral(
+        cmd,
         drivetrain, 
         front_limelight, 
-        elevator, 
-        subsystems.elevator.MoveElevatorToPosition.bottom, 
-        subsystems.wrist.CoralWristToPosition.bottom, 
-        False)
+        elevator,
+        wrist,
+        False,
+        shooter,
+        )
 
 def get_test_auto_lineup_to_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -179,7 +186,11 @@ def get_test_auto_lineup_to_coral(drivetrain: subsystems.command_swerve_drivetra
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    return subsystems.limelight.LineUpAprilTagCommand(drivetrain, front_limelight)
+    targetpose = front_limelight.smooth_targetpose.get_average_pose()
+    targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
+    offset = wpimath.geometry.Transform2d(targetpose.X(), targetpose.Y(), targetpose.rotation())
+
+    return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.SLOW_SPEED)
 
 def get_test_auto_drive_forward_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -188,7 +199,7 @@ def get_test_auto_drive_forward_coral(drivetrain: subsystems.command_swerve_driv
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter
                      ) -> commands2.Command:
-    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25)
+    return subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED)
 
 
 def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -198,7 +209,7 @@ def get_test_auto_drive_sideways_coral(drivetrain: subsystems.command_swerve_dri
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter
                      ) -> commands2.Command:
-    return subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, 0.25)
+    return subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED)
 
 def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -207,7 +218,7 @@ def get_test_auto_drive_backward_pickup(drivetrain: subsystems.command_swerve_dr
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    return subsystems.drive_robot_relative.drive_backward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25)
+    return subsystems.drive_robot_relative.drive_backward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED)
 
 def get_test_auto_elevator_position(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
@@ -316,7 +327,7 @@ def center_blue(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDr
     auto_commands = [AutoCommand(positions[21], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.middle, subsystems.wrist.CoralWristToPosition.middle), 
                      AutoCommand(positions[1], AutoCommand.wait, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom),
                     ]
-    return (drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
+    return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
 
 
 def get_auto_command(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -366,16 +377,15 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Move elevator up to position
-    wrist_speed = 0.20
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, 0.3).withTimeout(2.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(2.0)
     # Move sideways to lineup with the post
-    moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, 0.25).withTimeout(1.0)
+    moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(1.0)
     cmds.addCommands(moveElevatorToCoralPosition.alongWith(moveSideways))
 
     # Move the wrist up to position
-    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose, wrist_speed).withTimeout(1.0)
+    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose, subsystems.wrist.SPEED).withTimeout(1.0)
     # Move forward blindly to fill the gap where we lose sight of the april tag.
-    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25).withTimeout(1.0)
+    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(1.0)
     cmds.addCommands(driveForward.alongWith(moveWrist))
 
     # Shoot the coral out onto the post
@@ -383,7 +393,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(shootCoral)
 
     # Drive backward to avoid clipping the posts on the way down
-    driveBackward = subsystems.drive_robot_relative.drive_backward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25).withTimeout(1.0)
+    driveBackward = subsystems.drive_robot_relative.drive_backward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.NORMAL_SPEED).withTimeout(1.0)
     cmds.addCommands(driveBackward)
     # Move the elevator back down to origin.
     moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0, 0.6).withTimeout(1.0)
@@ -399,15 +409,15 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     cmds = commands2.SequentialCommandGroup()
 
     # Line up according to the limelight AprilTag data.
-    alignAprilTag = subsystems.limelight.LineUpAprilTagCommand(drivetrain, limelight).withTimeout(2)
-    cmds.addCommands(alignAprilTag)
+    #alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(2)
+    #cmds.addCommands(alignAprilTag)
 
     # Move forward blindly
-    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, 0.25).withTimeout(2)
+    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2)
     # Move the elevator into position
-    moveElevator = subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.pickup, 0.3).withTimeout(1.0)
+    moveElevator = subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.pickup, subsystems.elevator.SPEED).withTimeout(1.0)
     # Move the wrist into position
-    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, 0.3).withTimeout(1.0)
+    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).withTimeout(1.0)
     cmds.addCommands(driveForward.alongWith(moveElevator).alongWith(moveWrist))
 
     # Wait until we receive a coral
@@ -519,11 +529,11 @@ def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     cmds = commands2.SequentialCommandGroup()
 
     # Line up according to the limelight AprilTag data.
-    alignAprilTag = subsystems.limelight.LineUpAprilTagCommand(drivetrain, limelight).withTimeout(5.0)
+    alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(2.0)
     cmds.addCommands(alignAprilTag)
 
     # drive sideways go line up with the coral post
-    alignCoral = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, 0.25).withTimeout(5.0)
+    alignCoral = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2.0)
     cmds.addCommands(alignCoral)
 
     return cmds

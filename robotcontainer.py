@@ -37,8 +37,6 @@ class RobotContainer:
     periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
     subsystems, commands, and button mappings) should be declared here.
     """
-    NORMAL_SPEED = 0.5
-    TURBO_SPEED = 1.0
 
     def __init__(self) -> None:
         self._max_speed = (
@@ -104,8 +102,7 @@ class RobotContainer:
         self.periodic_publish = self.periodic_topic.publish()
         self.periodic_publish.set(0.0)
 
-        self.speed_limit = 0.50
-        self.wrist_speed = 0.15
+        self.speed_limit = subsystems.drive_robot_relative.NORMAL_SPEED
 
         # Configure the button bindings
         self.configureButtonBindings()
@@ -119,11 +116,11 @@ class RobotContainer:
         #self.front_limelight.odometry_command().schedule()
 
     def set_turbo_speed(self):
-        self.speed_limit = RobotContainer.TURBO_SPEED
+        self.speed_limit = subsystems.drive_robot_relative.TURBO_SPEED
         print(self.speed_limit)
 
     def set_normal_speed(self):
-        self.speed_limit = RobotContainer.NORMAL_SPEED
+        self.speed_limit = subsystems.drive_robot_relative.NORMAL_SPEED
         print(self.speed_limit)
 
     def configureButtonBindings(self) -> None:
@@ -155,11 +152,10 @@ class RobotContainer:
             )
         )
 
-        robot_relative_speed = 0.4
         self._driver_joystick.povUp().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(robot_relative_speed)
+                .with_velocity_x(subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_velocity_y(0)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
@@ -167,7 +163,7 @@ class RobotContainer:
         self._driver_joystick.povDown().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(-robot_relative_speed)
+                .with_velocity_x(-subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_velocity_y(0)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
@@ -176,7 +172,7 @@ class RobotContainer:
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
                 .with_velocity_x(0.0)
-                .with_velocity_y(-robot_relative_speed)
+                .with_velocity_y(-subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
@@ -184,39 +180,39 @@ class RobotContainer:
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
                 .with_velocity_x(0.0)
-                .with_velocity_y(robot_relative_speed)
+                .with_velocity_y(subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
         self._driver_joystick.povUpRight().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(robot_relative_speed)
-                .with_velocity_y(-robot_relative_speed)
+                .with_velocity_x(subsystems.drive_robot_relative.NORMAL_SPEED)
+                .with_velocity_y(-subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
         self._driver_joystick.povDownRight().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(-robot_relative_speed)
-                .with_velocity_y(-robot_relative_speed)
+                .with_velocity_x(-subsystems.drive_robot_relative.NORMAL_SPEED)
+                .with_velocity_y(-subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
         self._driver_joystick.povDownLeft().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(-robot_relative_speed)
-                .with_velocity_y(robot_relative_speed)
+                .with_velocity_x(-subsystems.drive_robot_relative.NORMAL_SPEED)
+                .with_velocity_y(subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
         self._driver_joystick.povUpLeft().whileTrue(
             self.drivetrain.apply_request(
                 lambda: self._forward_straight
-                .with_velocity_x(robot_relative_speed)
-                .with_velocity_y(robot_relative_speed)
+                .with_velocity_x(subsystems.drive_robot_relative.NORMAL_SPEED)
+                .with_velocity_y(subsystems.drive_robot_relative.NORMAL_SPEED)
                 .with_rotational_rate(-self._driver_joystick.getRightX() * self._max_angular_rate / 2)
             )
         )
@@ -253,60 +249,60 @@ class RobotContainer:
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed)
+            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * subsystems.wrist.SPEED)
         )
         self._operator_joystick.joystick.povUp().whileTrue(
-            subsystems.climber.MoveClimberCommand(self.climber, -1 * TunerConstants.climber_speed_constant)
+            subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)
         )
         self._operator_joystick.joystick.povDown().whileTrue(
-            subsystems.climber.MoveClimberCommand(self.climber, TunerConstants.climber_speed_constant)
+            subsystems.climber.MoveClimberCommand(self.climber, subsystems.climber.SPEED)
         )
         self._operator_joystick.joystick.a().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed)
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED)
         )
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
         )
         self._driver_joystick.a().whileTrue(
-            subsystems.limelight.LineUpAprilTagCommand(self.drivetrain, self.front_limelight)
+            subsystems.limelight.lineup_apriltag_command(self.drivetrain, self.front_limelight)
         )
         self._driver_joystick.b().whileTrue(
             subsystems.drive_robot_relative.drive_forward_command(self.drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, self.speed_limit)
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform, self.wrist_speed)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform, subsystems.wrist.SPEED)
                 )
         )
         self._operator_joystick.joystick.y().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle, self.wrist_speed)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle, subsystems.wrist.SPEED)
                 )
         )
         self._operator_joystick.joystick.x().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.bottom))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom, self.wrist_speed)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom, subsystems.wrist.SPEED)
                 )
         )
         self._operator_joystick.joystick.b().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.wrist_speed).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top))
             .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top, self.wrist_speed)
+                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top, subsystems.wrist.SPEED)
                 )
         )
         self._operator_joystick.joystick.rightBumper().whileTrue(
-            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, TunerConstants.algae_shooter_constant)
+            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, subsystems.algae_shooter.NORMAL_SPEED)
         )
         self._operator_joystick.joystick.leftBumper().whileTrue(
-            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, -TunerConstants.algae_shooter_constant)
+            subsystems.algae_shooter.ShootAlgae(self.algae_shooter, -subsystems.algae_shooter.NORMAL_SPEED)
         )
 
     

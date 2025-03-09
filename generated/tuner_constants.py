@@ -19,9 +19,11 @@ class TunerConstants:
     pneumatic_controller_id = 40
     pigeon_id = 41
 
-    climber_speed_constant = 1
-
-    algae_shooter_constant = 0.5
+    # Encoder offsets need to be overridden here every time you re-zero.
+    encoder_front_left_offset = -0.494140625
+    encoder_front_right_offset = 0.241455078125
+    encoder_back_left_offset = 0.064208984375
+    encoder_back_right_offset = -0.358154296875
 
     # Both sets of gains need to be tuned to your individual robot
 
@@ -144,7 +146,7 @@ class TunerConstants:
     _front_left_drive_motor_id = 11
     _front_left_steer_motor_id = 12
     _front_left_encoder_id = 13
-    _front_left_encoder_offset: units.rotation = 0.43896484375
+    _front_left_encoder_offset: units.rotation = encoder_front_left_offset
     _front_left_steer_motor_inverted = True
     _front_left_encoder_inverted = False
 
@@ -155,7 +157,7 @@ class TunerConstants:
     _front_right_drive_motor_id = 14
     _front_right_steer_motor_id = 15
     _front_right_encoder_id = 16
-    _front_right_encoder_offset: units.rotation = 0.395263671875
+    _front_right_encoder_offset: units.rotation = encoder_front_right_offset
     _front_right_steer_motor_inverted = True
     _front_right_encoder_inverted = False
 
@@ -166,7 +168,7 @@ class TunerConstants:
     _back_left_drive_motor_id = 17
     _back_left_steer_motor_id = 18
     _back_left_encoder_id = 19
-    _back_left_encoder_offset: units.rotation = 0.4794921875
+    _back_left_encoder_offset: units.rotation = encoder_back_left_offset
     _back_left_steer_motor_inverted = True
     _back_left_encoder_inverted = False
 
@@ -177,7 +179,7 @@ class TunerConstants:
     _back_right_drive_motor_id = 20
     _back_right_steer_motor_id = 21
     _back_right_encoder_id = 22
-    _back_right_encoder_offset: units.rotation = -0.167236328125
+    _back_right_encoder_offset: units.rotation = encoder_back_right_offset
     _back_right_steer_motor_inverted = True
     _back_right_encoder_inverted = False
 

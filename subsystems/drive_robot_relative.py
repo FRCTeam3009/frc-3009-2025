@@ -17,6 +17,10 @@ ROBOT_RELATIVE = (
             )
         )
 
+TURBO_SPEED = 1.0
+NORMAL_SPEED = 0.5
+SLOW_SPEED = 0.25
+
 class DriveRobotRelativeCommand(commands2.Command):
     def __init__(self, 
                  drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 

@@ -7,6 +7,7 @@ import wpimath.units
 import subsystems.command_swerve_drivetrain
 import wpimath
 import subsystems.drive_robot_relative
+import subsystems.limelight
 import subsystems.limelight_positions
 
 class Limelight(object):
@@ -84,50 +85,13 @@ class Limelight(object):
                                     pose.rotation().degrees()]
         self.bot_pose_publish.set(self.bot_pose_target_var)
 
-class LineUpAprilTagCommand(commands2.Command):
-
-    def __init__(self,
-                 drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
-                 limelight: Limelight,
-                ):
-        self.drive_train = drive_train
-        self.limelight = limelight
-
-    def initialize(self):
-        pass
-
-    def execute(self):
-        pose = self.limelight.smooth_targetpose.get_average_pose()
-        pose = subsystems.limelight_positions.correct_target_pose(pose)
-
-        x = pose.X()
-        y = pose.Y()
-        r = pose.rotation().degrees()
-
-        forward = 0
-        horizontal = 0
-        rotation = 0
-
-        if x > 0:
-            forward = 0.2
-        elif x < 0:
-            forward = -0.2
-        if y > 0:
-            horizontal = 0.2
-        elif y < 0:
-            horizontal = -0.2
-        if r < 5:
-            rotation = 0.5
-        elif r > 5:
-            rotation = -0.5
-
-        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
-        self.drive_train.apply_request(drive_request).execute()
-
+def lineup_apriltag_command(
+        drivetrain : subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+        limelight : Limelight,
+        ) -> commands2.Command:
     
-    def isFinished(self):
-        return self.limelight.lined_up()
-    
-    def end(self, interrupted):
-        drive_request = lambda: subsystems.drive_robot_relative.ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)
-        self.drive_train.apply_request(drive_request).execute()
+    targetpose = limelight.smooth_targetpose.get_average_pose()
+    targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
+    offset = wpimath.geometry.Transform2d(targetpose.X(), targetpose.Y(), targetpose.rotation())
+
+    return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)

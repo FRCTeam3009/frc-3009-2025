@@ -8,6 +8,8 @@ import typing
 import ntcore
 from generated.tuner_constants import TunerConstants
 
+SPEED = 0.3
+
 class Elevator(commands2.Subsystem):
 
     def __init__(self):

@@ -5,6 +5,7 @@ import ntcore
 import wpilib
 from generated.tuner_constants import TunerConstants
 
+SPEED = 1.0
 
 class Climber(commands2.Subsystem):
     def __init__(self):
