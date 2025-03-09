@@ -11,7 +11,7 @@ class TunerConstants:
 
     elevator_main_id = 31
     elevator_follower_id = 32
-    coral_out_id = 33
+    coral_algae_id = 33
     coral_wrist_id = 34
     climber_id = 45
     

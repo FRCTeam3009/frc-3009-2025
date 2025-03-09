@@ -10,6 +10,8 @@ from generated.tuner_constants import TunerConstants
 
 SPEED = 0.15
 
+RANGE = 90.0 # About 90 degrees of motion
+
 class Wrist(commands2.Subsystem):
     def __init__(self):
         commands2.CommandScheduler.registerSubsystem(self)
@@ -68,7 +70,9 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_bottom2_publish.set(self.bottom_sensor2.get())
 
     def get_wrist_position(self) -> float:
-        return self.coral_wrist_motor.getEncoder().getPosition()
+        # NOTE absolute position wraps around from 0 to 360 (i.e. 361 => 1 and -1 => 359)
+        # (we set a factor of 360 on the SparkMax to give us degrees of motion)
+        return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
     
     def coral_sensor_receive(self):
         if self.top_sensor.get() or self.bottom_sensor.get():
@@ -105,12 +109,12 @@ class CoralWristCommand(commands2.Command):
         self.wrist.coral_wrist(0)
 
 class CoralWristToPosition(commands2.Command):
-    #TODO update these values
-    top = 0.02
-    middle = 0.065
-    bottom = 0.065
-    platform = 0.10
-    pickup = 0.10
+    # TODO update these values now that we have absolute position
+    top = 45.0
+    middle = 55.0
+    bottom = 55.0
+    platform = 80.0 # Platform is almost straight forward
+    pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float, speed: float):
         self.wrist = wrist
         self.position = position
@@ -167,5 +171,5 @@ class HoldPositionCommand(commands2.Command):
     
     def execute(self):
         difference = self.position_to_hold - self.wrist.get_wrist_position()
-        motor_power = difference * 3
+        motor_power = difference / RANGE
         self.wrist.coral_wrist(motor_power)
