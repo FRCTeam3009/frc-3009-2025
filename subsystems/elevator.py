@@ -117,6 +117,7 @@ class MoveElevatorToPosition(commands2.Command):
     platform = -7.5
     pickup = -7.5
     lower_limit = 8.2
+    
     def __init__(self, elevator: Elevator, position : float, speed : float = 0.3):
         self.elevator = elevator
         self.position = position

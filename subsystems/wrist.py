@@ -6,6 +6,7 @@ import wpimath
 import wpimath.system.plant
 import wpilib
 import typing
+import numpy
 from generated.tuner_constants import TunerConstants
 
 SPEED = 0.15
@@ -19,8 +20,8 @@ class Wrist(commands2.Subsystem):
         self.coral_wrist_motor = rev.SparkMax(TunerConstants.coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
 
-        self.up_wrist_limit = 0.11
-        self.down_wrist_limit = 0.0
+        self.up_wrist_limit = 125
+        self.down_wrist_limit = CoralWristToPosition.pickup
 
         self.top_sensor = wpilib.DigitalInput(3)
         self.top_sensor2 = wpilib.DigitalInput(0)
@@ -50,10 +51,11 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_top2_publish = self.coral_sensor_top2_topic.publish()
         self.coral_sensor_top2_publish.set(False)
 
+
     def coral_wrist(self, speed: float):
-        if self.get_wrist_position() > self.up_wrist_limit and speed > 0:
+        if self.get_wrist_position() > self.up_wrist_limit and speed > 0.0:
             self.coral_wrist_motor.set(0)
-        elif self.get_wrist_position() < self.down_wrist_limit and speed < 0:
+        elif self.get_wrist_position() < self.down_wrist_limit and speed < 0.0:
             self.coral_wrist_motor.set(0)
         else:
             self.coral_wrist_motor.set(speed)
@@ -72,7 +74,10 @@ class Wrist(commands2.Subsystem):
     def get_wrist_position(self) -> float:
         # NOTE absolute position wraps around from 0 to 360 (i.e. 361 => 1 and -1 => 359)
         # (we set a factor of 360 on the SparkMax to give us degrees of motion)
-        return self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
+        pos = self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
+        if pos > 300:
+            pos -= 360
+        return pos
     
     def coral_sensor_receive(self):
         if self.top_sensor.get() or self.bottom_sensor.get():

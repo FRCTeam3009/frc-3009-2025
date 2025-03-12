@@ -14,8 +14,6 @@ class TunerConstants:
     coral_algae_id = 33
     coral_wrist_id = 34
     climber_id = 45
-    
-    pneumatic_controller_id = 40
     pigeon_id = 41
 
     # Encoder offsets need to be overridden here every time you re-zero.
