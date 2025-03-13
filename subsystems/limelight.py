@@ -92,6 +92,7 @@ def lineup_apriltag_command(
     
     targetpose = limelight.smooth_targetpose.get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
-    offset = wpimath.geometry.Transform2d(targetpose.X(), targetpose.Y(), targetpose.rotation())
+    x = targetpose.X() - wpimath.units.inchesToMeters(26)
+    offset = wpimath.geometry.Transform2d(x, targetpose.Y(), targetpose.rotation())
 
     return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)

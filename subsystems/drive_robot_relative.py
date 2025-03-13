@@ -32,6 +32,10 @@ class DriveRobotRelativeCommand(commands2.Command):
         self.offset = offset
         self.speed = speed
 
+        self.forward = 0.0
+        self.horizontal = 0.0
+        self.rotation = 0.0
+
         self.start_pose : wpimath.geometry.Pose2d
         self.start_pose = None
 
@@ -64,10 +68,23 @@ class DriveRobotRelativeCommand(commands2.Command):
         elif compare_r < -3:
             rotation = -1 * self.speed
 
-        drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(forward).with_velocity_y(horizontal).with_rotational_rate(rotation)
-        self.drive_cmd = self.drive_train.apply_request(drive_request)
+        self.forward = forward
+        self.horizontal = horizontal
+        self.rotation = rotation
         
     def execute(self):
+        current_pose = self.drive_train.get_state_copy().pose
+        diff = self.end_pose - current_pose
+
+        if abs(diff.X()) < ONE_INCH:
+            self.forward = 0.0
+        if abs(diff.Y()) < ONE_INCH:
+            self.horizontal = 0.0
+        if abs(diff.rotation().degrees()) < 5:
+            self.rotation = 0.0
+        
+        drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(self.forward).with_velocity_y(self.horizontal).with_rotational_rate(self.rotation)
+        self.drive_cmd = self.drive_train.apply_request(drive_request)
         self.drive_cmd.execute()
 
     def isFinished(self):

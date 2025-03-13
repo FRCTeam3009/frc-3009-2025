@@ -236,11 +236,11 @@ class RobotContainer:
         )
 
         commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
-            subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis())
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis()*subsystems.shooter.SPEED)
         )
 
         commands2.button.Trigger(self._operator_joystick.is_right_trigger_pressed).whileTrue(
-            subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis())
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
             subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * subsystems.wrist.SPEED)
@@ -292,12 +292,10 @@ class RobotContainer:
                     subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top, subsystems.wrist.SPEED)
                 )
         )
-        self._operator_joystick.joystick.rightBumper().whileTrue(
-            subsystems.shooter.ShootAlgae(self.shooter, subsystems.shooter.SPEED)
+        self._operator_joystick.joystick.leftBumper().onTrue(
+            subsystems.wrist.MoveIntake(self.wrist.intake_servo)
         )
-        self._operator_joystick.joystick.leftBumper().whileTrue(
-            subsystems.shooter.ShootAlgae(self.shooter, -subsystems.shooter.SPEED)
-        )
+        
 
     
     def getAutonomousCommand(self) -> commands2.Command:

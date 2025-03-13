@@ -51,6 +51,12 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_top2_publish = self.coral_sensor_top2_topic.publish()
         self.coral_sensor_top2_publish.set(False)
 
+        self.intake_servo = wpilib.Servo(0)
+
+        self.intake_servo_topic = self.nt_table.getDoubleTopic("intake servo")
+        self.intake_servo_publish = self.intake_servo_topic.publish()
+        self.intake_servo_publish.set(0.0)
+
 
     def coral_wrist(self, speed: float):
         if self.get_wrist_position() > self.up_wrist_limit and speed > 0.0:
@@ -70,6 +76,8 @@ class Wrist(commands2.Subsystem):
         
         self.coral_sensor_top2_publish.set(self.top_sensor2.get())
         self.coral_sensor_bottom2_publish.set(self.bottom_sensor2.get())
+
+        self.intake_servo_publish.set(self.intake_servo.getPosition())
 
     def get_wrist_position(self) -> float:
         # NOTE absolute position wraps around from 0 to 360 (i.e. 361 => 1 and -1 => 359)
@@ -114,11 +122,10 @@ class CoralWristCommand(commands2.Command):
         self.wrist.coral_wrist(0)
 
 class CoralWristToPosition(commands2.Command):
-    # TODO update these values now that we have absolute position
     top = 45.0
-    middle = 55.0
-    bottom = 55.0
-    platform = 80.0 # Platform is almost straight forward
+    middle = 60.0
+    bottom = 62.5
+    platform = 72.0 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float, speed: float):
         self.wrist = wrist
@@ -178,3 +185,20 @@ class HoldPositionCommand(commands2.Command):
         difference = self.position_to_hold - self.wrist.get_wrist_position()
         motor_power = difference / RANGE
         self.wrist.coral_wrist(motor_power)
+
+class MoveIntake(commands2.Command):
+    pickup_pose = 1.0
+    drop_pose = 0.0
+    def __init__(self, servo: wpilib.Servo):
+        self.intake_servo = servo
+        self.intake_servo.setPosition(MoveIntake.drop_pose)
+
+    def execute(self):
+        pose = self.intake_servo.getPosition()
+        if pose > 0.5:
+            self.intake_servo.setPosition(MoveIntake.drop_pose)
+        else:
+            self.intake_servo.setPosition(MoveIntake.pickup_pose)
+
+    def isFinished(self):
+        return True

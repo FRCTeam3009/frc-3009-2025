@@ -112,11 +112,11 @@ class MoveElevatorCommand(commands2.Command):
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
     top = -82.4
-    middle = -55
-    bottom = -27
-    platform = -7.5
-    pickup = -7.5
-    lower_limit = 8.2
+    middle = -49
+    bottom = -16
+    platform = -8.4
+    pickup = 1.0
+    lower_limit = 1.0
     
     def __init__(self, elevator: Elevator, position : float, speed : float = 0.3):
         self.elevator = elevator

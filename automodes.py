@@ -247,6 +247,21 @@ def get_test_auto_offset_apriltag(drivetrain: subsystems.command_swerve_drivetra
                      ) -> commands2.Command:
     return offset_april_tag(drivetrain, front_limelight)
 
+def get_test_auto_fake_apriltag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
+                     front_limelight: subsystems.limelight.Limelight, 
+                     back_limelight: subsystems.limelight.Limelight,
+                     elevator: subsystems.elevator.Elevator,
+                     wrist: subsystems.wrist.Wrist,
+                     shooter: subsystems.shooter.Shooter,
+                     ) -> commands2.Command:
+    x = wpimath.units.inchesToMeters(12)
+    y = wpimath.units.inchesToMeters(5)
+    r = wpimath.units.degreesToRadians(15)
+    targetpose = Pose2d(x, y, r)
+    offset = wpimath.geometry.Transform2d(targetpose.X(), targetpose.Y(), targetpose.rotation())
+
+    return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
+
 def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
                      front_limelight: subsystems.limelight.Limelight, 
                      back_limelight: subsystems.limelight.Limelight,
@@ -389,7 +404,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(driveForward.alongWith(moveWrist))
 
     # Shoot the coral out onto the post
-    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: 1.0).withTimeout(1.0)
+    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.SPEED).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
     # Drive backward to avoid clipping the posts on the way down
@@ -449,7 +464,7 @@ class AutoDashboard():
         "test_place_coral": get_test_auto_place_coral,
         "test_lineup_coral": get_test_auto_lineup_to_coral,
         "test_offset_apriltag": get_test_auto_offset_apriltag,
-        
+        "test_fake_apriltag": get_test_auto_fake_apriltag,
        }
     def __init__(self):
         self.nt_instance = ntcore.NetworkTableInstance.getDefault()
