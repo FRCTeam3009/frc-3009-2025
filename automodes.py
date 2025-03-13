@@ -399,17 +399,12 @@ def place_coral(cmd: AutoCommand,
 
     # Move the wrist up to position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose, subsystems.wrist.SPEED).withTimeout(1.0)
-    # Move forward blindly to fill the gap where we lose sight of the april tag.
-    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(1.0)
-    cmds.addCommands(driveForward.alongWith(moveWrist))
+    cmds.addCommands(moveWrist)
 
     # Shoot the coral out onto the post
     shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.SPEED).withTimeout(1.0)
     cmds.addCommands(shootCoral)
 
-    # Drive backward to avoid clipping the posts on the way down
-    driveBackward = subsystems.drive_robot_relative.drive_backward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.NORMAL_SPEED).withTimeout(1.0)
-    cmds.addCommands(driveBackward)
     # Move the elevator back down to origin.
     moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0, 0.6).withTimeout(1.0)
     cmds.addCommands(moveElevatorToFloor)
@@ -427,13 +422,11 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
     #alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(2)
     #cmds.addCommands(alignAprilTag)
 
-    # Move forward blindly
-    driveForward = subsystems.drive_robot_relative.drive_forward_command(drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2)
     # Move the elevator into position
     moveElevator = subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.pickup, subsystems.elevator.SPEED).withTimeout(1.0)
     # Move the wrist into position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup, subsystems.wrist.SPEED).withTimeout(1.0)
-    cmds.addCommands(driveForward.alongWith(moveElevator).alongWith(moveWrist))
+    cmds.addCommands(moveElevator.alongWith(moveWrist))
 
     # Wait until we receive a coral
     wait = subsystems.wrist.CoralWait(wrist.coral_sensor_receive).withTimeout(3)
@@ -444,12 +437,12 @@ def pickup_coral(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveD
 class AutoDashboard():
     auto_map = {
         "noob_forward": noob_auto_drive_straight_forward,
-        "use_blue": forward_blue,
-        "use_red": forward_red,
-        "use_left_red": forward_left_red,
-        "use_right_red": forward_right_red,
-        "use_left_blue": forward_left_blue,
-        "use_right_blue": forward_right_blue,
+        # "use_blue": forward_blue,
+        # "use_red": forward_red,
+        # "use_left_red": forward_left_red,
+        # "use_right_red": forward_right_red,
+        # "use_left_blue": forward_left_blue,
+        # "use_right_blue": forward_right_blue,
         "redleft": get_red_auto_1,
         "redright": get_red_auto_2,
         "blueleft": get_blue_auto_1,
@@ -475,8 +468,8 @@ class AutoDashboard():
 
         self.selectedtopic = self.table.getStringTopic("selected")
         self.selected_publisher = self.selectedtopic.publish()
-        self.selected_publisher.set("use_right_blue")
-        self.selected_subscriber = self.selectedtopic.subscribe("use_right_blue")
+        self.selected_publisher.set("noob_forward")
+        self.selected_subscriber = self.selectedtopic.subscribe("noob_forward")
         self.current_auto = self.selected_subscriber.get()        
 
     def update(self):
@@ -546,9 +539,5 @@ def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     # Line up according to the limelight AprilTag data.
     alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(2.0)
     cmds.addCommands(alignAprilTag)
-
-    # drive sideways go line up with the coral post
-    alignCoral = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2.0)
-    cmds.addCommands(alignCoral)
 
     return cmds

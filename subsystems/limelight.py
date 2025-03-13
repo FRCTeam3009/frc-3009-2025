@@ -60,24 +60,7 @@ class Limelight(object):
     def odometry_update(self):
         self.drive_train.add_vision_measurement(self.smooth_botpose.get_average_pose(), 0.05)
     
-    def lined_up(self):
-        if phoenix6.utils.is_simulation():
-            return True
-
-        pose = self.smooth_targetpose.get_average_pose()
-        pose = subsystems.limelight_positions.correct_target_pose(pose)
-        x_value = wpimath.units.metersToInches(pose.X())
-        y_value = wpimath.units.metersToInches(pose.Y())
-        rotation = pose.rotation().degrees()
-
-        self.offset_pub.set([x_value, y_value, rotation])
-        
-        if abs(x_value - 26) <= 1 and abs(y_value) <= 1 and abs(rotation) <= 5:
-            return True
-        return False
-    
     def telemetry(self):
-        self.lined_up_publish.set(self.lined_up())
         pose = self.smooth_targetpose.get_average_pose()
         pose = subsystems.limelight_positions.correct_target_pose(pose)
         self.bot_pose_target_var = [wpimath.units.metersToInches(pose.X()), 
@@ -92,7 +75,7 @@ def lineup_apriltag_command(
     
     targetpose = limelight.smooth_targetpose.get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
-    x = targetpose.X() - wpimath.units.inchesToMeters(26)
+    x = targetpose.X() - wpimath.units.inchesToMeters(38)
     offset = wpimath.geometry.Transform2d(x, targetpose.Y(), targetpose.rotation())
 
     return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
