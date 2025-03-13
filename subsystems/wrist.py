@@ -142,7 +142,7 @@ class CoralWristToPosition(commands2.Command):
 
     def execute(self):
         if self.wrist.get_wrist_position() < self.position:
-            self.wrist.coral_wrist(self.speed)
+            self.wrist.coral_wrist(-self.speed)
         else:
             self.wrist.coral_wrist(self.speed)
 
