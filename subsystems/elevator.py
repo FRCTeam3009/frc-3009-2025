@@ -38,7 +38,8 @@ class Elevator(commands2.Subsystem):
     
     def change_height(self, speed: float):
         speed *= -1
-        
+        self.main_motor.set(speed)
+
         if self.get_position() <= self.up_limit and speed < 0:
             # Stop the motor if we went too high
             self.main_motor.set(0)
@@ -111,12 +112,12 @@ class MoveElevatorCommand(commands2.Command):
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    top = -82.4
+    top = -87.5
     middle = -49
     bottom = -16
-    platform = -8.4
+    platform = 1.0
     pickup = 1.0
-    lower_limit = 1.0
+    lower_limit = 6.2
     
     def __init__(self, elevator: Elevator, position : float, speed : float = 0.3):
         self.elevator = elevator

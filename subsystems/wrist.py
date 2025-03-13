@@ -191,7 +191,7 @@ class MoveIntake(commands2.Command):
     drop_pose = 0.0
     def __init__(self, servo: wpilib.Servo):
         self.intake_servo = servo
-        self.intake_servo.setPosition(MoveIntake.drop_pose)
+        #self.intake_servo.setPosition(MoveIntake.drop_pose)
 
     def execute(self):
         pose = self.intake_servo.getPosition()
