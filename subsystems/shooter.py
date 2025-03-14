@@ -51,25 +51,3 @@ class CoralOutCommand(commands2.Command):
         self.shooter.move(0)
         self.timer.stop()
         self.timer.reset()
-
-class ShootAlgae(commands2.Command):
-    def __init__(self, shooter: Shooter, speed: float):
-        self.shooter = shooter
-        self.speed = speed
-        self.timer = wpilib.Timer()
-
-    def initialize(self):
-        self.timer.start()
-
-    def execute(self):
-        speed = self.speed
-        t = 0.5
-        if not self.timer.hasElapsed(t):
-            # Ramp up over time
-            speed = self.speed * (self.timer.get()/t)
-
-        self.shooter.move(self.speed)
-
-    def end(self, interrupted):
-        self.timer.stop()
-        self.timer.reset()

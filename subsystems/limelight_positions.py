@@ -1,6 +1,8 @@
 import wpimath
 import wpimath.units
 import wpimath.geometry
+import wpilib
+import subsystems.limelight
 
 def pose2d_from_targetpose(targetpose: list[float]) -> wpimath.geometry.Pose2d:
     if len(targetpose) < 6:
@@ -62,10 +64,15 @@ class SmoothPosition(object):
         avgy = y / n
         avgr = r / n
 
+        if not wpilib.RobotBase.isReal():
+            # Simulation will say that we're almost lined up with the april tag offset.
+            avgx = subsystems.limelight.APRIL_TAG_OFFSET + wpimath.units.inchesToMeters(6)
+
         return wpimath.geometry.Pose2d(avgx, avgy, avgr)
     
 def correct_target_pose(pose : wpimath.geometry.Pose2d) -> wpimath.geometry.Pose2d:
     # Targetpose in robot space appears to need to invert both the rotation and horizontal.
     r = -1 * pose.rotation().degrees()
     rotation = wpimath.geometry.Rotation2d.fromDegrees(r)
-    return wpimath.geometry.Pose2d(pose.X(), -1 * pose.Y(), rotation)
+    horizontal = -1 * pose.Y()
+    return wpimath.geometry.Pose2d(pose.X(), horizontal, rotation)

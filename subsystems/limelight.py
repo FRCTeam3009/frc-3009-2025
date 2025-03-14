@@ -1,7 +1,5 @@
 from ntcore import NetworkTableInstance
 import commands2.cmd
-import phoenix6.swerve
-import phoenix6.utils
 import wpimath.geometry
 import wpimath.units
 import subsystems.command_swerve_drivetrain
@@ -9,6 +7,8 @@ import wpimath
 import subsystems.drive_robot_relative
 import subsystems.limelight
 import subsystems.limelight_positions
+
+APRIL_TAG_OFFSET = wpimath.units.inchesToMeters(38)
 
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
@@ -75,7 +75,7 @@ def lineup_apriltag_command(
     
     targetpose = limelight.smooth_targetpose.get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
-    x = targetpose.X() - wpimath.units.inchesToMeters(38)
+    x = targetpose.X() - APRIL_TAG_OFFSET
     offset = wpimath.geometry.Transform2d(x, targetpose.Y(), targetpose.rotation())
 
     return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)

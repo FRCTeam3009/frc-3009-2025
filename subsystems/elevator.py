@@ -6,6 +6,7 @@ import time
 import wpilib.simulation
 import typing
 import ntcore
+import subsystems.wrist
 from generated.tuner_constants import TunerConstants
 
 SPEED = 0.3
@@ -57,12 +58,12 @@ class Elevator(commands2.Subsystem):
             rotations += self.get_position()
             self.main_motor.sim_state.set_raw_rotor_position(rotations)
 
-    def telemetry(self):
+    def telemetry(self, wrist: subsystems.wrist.Wrist):
         box = wpilib.Mechanism2d(29.5, 29.5)
         stationary_root = box.getRoot("Elevator", 15, 0.75)
 
         elevator_position = -1 * self.get_position() * 30/1000.0
-        #wrist_rotation = self.coral_wrist_sim.getPosition()
+        wrist_rotation = wrist.coral_wrist_sim.getAbsoluteEncoderSim().getPosition()
 
         platform_root = box.getRoot("Platform", 15, elevator_position)
         stationary_root.appendLigament(
@@ -71,9 +72,9 @@ class Elevator(commands2.Subsystem):
         root = platform_root.appendLigament(
             "platform", 1, 90
         )
-        #root.appendLigament(
-        #    "wrist", 1, 180 + wrist_rotation, 6, wpilib.Color8Bit(0, 0, 255)
-        #)
+        root.appendLigament(
+           "wrist", 1, 180 + wrist_rotation, 6, wpilib.Color8Bit(0, 0, 255)
+        )
         wpilib.SmartDashboard.putData("Elevator", box)
 
         self.elevator_publish.set(self.get_position())
