@@ -7,11 +7,14 @@ import wpilib
 import typing
 import wpimath.controller
 import wpimath.trajectory
+import math
 
 import wpimath.units
 from generated.tuner_constants import TunerConstants
 
-SPEED = 0.15
+HOLD_SPEED = 0.15
+MANUAL_SPEED = 0.15
+GRAVITY_OFFSET = 0.1
 
 RANGE = 90.0 # About 90 degrees of motion
 
@@ -59,20 +62,6 @@ class Wrist(commands2.Subsystem):
         self.intake_servo_topic = self.nt_table.getDoubleTopic("intake servo")
         self.intake_servo_publish = self.intake_servo_topic.publish()
         self.intake_servo_publish.set(0.0)
-
-        self.wristPIDController = wpimath.controller.ProfiledPIDController(
-            0.5,
-            0,
-            0,
-            wpimath.trajectory.TrapezoidProfile.Constraints(
-                1,
-                1,
-            ),
-        )
-        
-        self.wristPIDController.enableContinuousInput(0, 360)
-
-        self.wristFeedforward = wpimath.controller.SimpleMotorFeedforwardMeters(1, 0.5)
 
 
     def coral_wrist(self, speed: float):
@@ -139,14 +128,17 @@ class CoralWristToPosition(commands2.Command):
         self.target_position = position
 
     def execute(self):
-        wristOutput = self.wrist.wristPIDController.calculate(
-            self.wrist.get_wrist_position(), self.target_position
-        )
+        s = 0.0
+        position = self.wrist.get_wrist_position()
+        if position < self.target_position:
+            s = HOLD_SPEED
+        else:
+            s = -HOLD_SPEED
 
-        wristFeedforward = self.wrist.wristFeedforward.calculate(
-            self.wrist.wristPIDController.getSetpoint().velocity
-        )
-        self.wrist.coral_wrist(wristOutput + wristFeedforward)
+        # Give us more speed when we're being most affected by gravity
+        s += GRAVITY_OFFSET * math.sin(position)
+
+        self.wrist.coral_wrist(s)
 
     def isFinished(self):
         return abs(self.wrist.get_wrist_position() - self.target_position) < 1
@@ -179,14 +171,17 @@ class HoldPositionCommand(commands2.Command):
         self.target_position = self.wrist.get_wrist_position()
 
     def execute(self):
-        wristOutput = self.wrist.wristPIDController.calculate(
-            self.wrist.get_wrist_position(), self.target_position
-        )
+        s = 0.0
+        position = self.wrist.get_wrist_position()
+        if position < self.target_position:
+            s = HOLD_SPEED
+        else:
+            s = -HOLD_SPEED
 
-        wristFeedforward = self.wrist.wristFeedforward.calculate(
-            self.wrist.wristPIDController.getSetpoint().velocity
-        )
-        self.wrist.coral_wrist(wristOutput + wristFeedforward)
+        # Give us more speed when we're being most affected by gravity
+        s += GRAVITY_OFFSET * math.sin(position)
+
+        self.wrist.coral_wrist(s)
 
 class MoveIntake(commands2.Command):
     pickup_pose = 1.0
