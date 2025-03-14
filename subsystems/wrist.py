@@ -12,9 +12,8 @@ import math
 import wpimath.units
 from generated.tuner_constants import TunerConstants
 
-HOLD_SPEED = 0.15
-MANUAL_SPEED = 0.15
-GRAVITY_OFFSET = 0.1
+HOLD_SPEED = 0.075
+DRIVE_SPEED = 0.15
 
 RANGE = 90.0 # About 90 degrees of motion
 
@@ -130,13 +129,18 @@ class CoralWristToPosition(commands2.Command):
     def execute(self):
         s = 0.0
         position = self.wrist.get_wrist_position()
-        if position < self.target_position:
-            s = HOLD_SPEED
+        diff = self.target_position - position
+        if diff < -2:
+            s = -DRIVE_SPEED
+        elif diff > 2:
+            s = DRIVE_SPEED
         else:
-            s = -HOLD_SPEED
+            s = 0
 
-        # Give us more speed when we're being most affected by gravity
-        s += GRAVITY_OFFSET * math.sin(position)
+        # Slow down as we get closer
+        slow = 15
+        if abs(diff) < slow:
+            s = s * abs(diff) / slow
 
         self.wrist.coral_wrist(s)
 
@@ -173,13 +177,18 @@ class HoldPositionCommand(commands2.Command):
     def execute(self):
         s = 0.0
         position = self.wrist.get_wrist_position()
-        if position < self.target_position:
-            s = HOLD_SPEED
+        diff = self.target_position - position
+        if diff < -2:
+            s = -(HOLD_SPEED)
+        elif diff > 2:
+            s = (HOLD_SPEED)
         else:
-            s = -HOLD_SPEED
+            s = 0
 
-        # Give us more speed when we're being most affected by gravity
-        s += GRAVITY_OFFSET * math.sin(position)
+        # Slow down as we get closer
+        slow = 15
+        if abs(diff) < slow:
+            s = s * abs(diff) / slow
 
         self.wrist.coral_wrist(s)
 
@@ -188,7 +197,6 @@ class MoveIntake(commands2.Command):
     drop_pose = 0.0
     def __init__(self, servo: wpilib.Servo):
         self.intake_servo = servo
-        #self.intake_servo.setPosition(MoveIntake.drop_pose)
 
     def execute(self):
         pose = self.intake_servo.getPosition()
