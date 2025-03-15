@@ -7,12 +7,12 @@ import wpilib
 import typing
 import wpimath.controller
 import wpimath.trajectory
-import math
 
 import wpimath.units
 from generated.tuner_constants import TunerConstants
 
-HOLD_SPEED = 0.075
+HOLD_SPEED = 0.15
+LOW_SPEED = 0.075
 DRIVE_SPEED = 0.15
 
 RANGE = 90.0 # About 90 degrees of motion
@@ -138,7 +138,7 @@ class CoralWristToPosition(commands2.Command):
             s = 0
 
         # Slow down as we get closer
-        slow = 15
+        slow = 25
         if abs(diff) < slow:
             s = s * abs(diff) / slow
 
@@ -178,17 +178,22 @@ class HoldPositionCommand(commands2.Command):
         s = 0.0
         position = self.wrist.get_wrist_position()
         diff = self.target_position - position
+        # Slow down as we get closer
+        slow = 30
+        speed = HOLD_SPEED
+        if position < 90:
+            speed = LOW_SPEED
+
+        if abs(diff) < slow:
+            factor = max(abs(diff) / slow, 0.25)
+            speed = speed * factor
+
         if diff < -2:
-            s = -(HOLD_SPEED)
+            s = -(speed)
         elif diff > 2:
-            s = (HOLD_SPEED)
+            s = (speed)
         else:
             s = 0
-
-        # Slow down as we get closer
-        slow = 15
-        if abs(diff) < slow:
-            s = s * abs(diff) / slow
 
         self.wrist.coral_wrist(s)
 

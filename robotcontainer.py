@@ -264,32 +264,20 @@ class RobotContainer:
             subsystems.drive_robot_relative.drive_forward_command(self.drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, self.speed_limit)
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform))
-            .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.platform)
-                )
         )
         self._operator_joystick.joystick.y().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle))
-            .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.middle)
-                )
         )
         self._operator_joystick.joystick.x().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.bottom))
-            .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.bottom)
-                )
         )
         self._operator_joystick.joystick.b().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top))
-            .andThen(
-                    subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.top)
-                )
         )
         self._operator_joystick.joystick.leftBumper().onTrue(
             subsystems.wrist.MoveIntake(self.wrist.intake_servo)
