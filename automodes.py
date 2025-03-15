@@ -166,7 +166,7 @@ def get_test_auto_place_coral(drivetrain: subsystems.command_swerve_drivetrain.C
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    cmd = AutoCommand(positions[1], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.platform, subsystems.wrist.CoralWristToPosition.platform)
+    cmd = AutoCommand(positions[1], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.bottom, subsystems.wrist.CoralWristToPosition.bottom)
     return place_coral(
         cmd,
         drivetrain, 
@@ -378,7 +378,7 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(2.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(3.0)
     # Move sideways to lineup with the post
     moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(1.0)
     cmds.addCommands(moveElevatorToCoralPosition.alongWith(moveSideways))
@@ -396,12 +396,8 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(shootCoral)
 
     #drive backwards after firing
-    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(36), subsystems.drive_robot_relative.SLOW_SPEED)
+    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(36), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3)
     cmds.addCommands(driveBackwards)
-
-    # Move the elevator back down to origin.
-    #moveElevatorToFloor = subsystems.elevator.MoveElevatorToPosition(elevator, 0, 0.6).withTimeout(1.0)
-    #cmds.addCommands(moveElevatorToFloor)
 
     return cmds
 

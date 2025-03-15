@@ -11,7 +11,7 @@ def pose2d_from_targetpose(targetpose: list[float]) -> wpimath.geometry.Pose2d:
     # [horizontal, vertical, forward, pitch, yaw, roll]
     forward = targetpose[2] # meters
     horizontal = targetpose[0] # meters
-    rotation = targetpose[5] # degrees
+    rotation = targetpose[4] # degrees
 
     return wpimath.geometry.Pose2d(forward, horizontal, wpimath.units.degreesToRadians(rotation))
     
@@ -74,5 +74,6 @@ class SmoothPosition(object):
 def correct_target_pose(pose : wpimath.geometry.Pose2d) -> wpimath.geometry.Pose2d:
     r = -1 * pose.rotation().degrees()
     rotation = wpimath.geometry.Rotation2d.fromDegrees(r)
-    horizontal = pose.Y()
-    return wpimath.geometry.Pose2d(pose.X(), horizontal, rotation)
+    horizontal = -1 * pose.Y()
+    forward = pose.X()
+    return wpimath.geometry.Pose2d(forward, horizontal, rotation)

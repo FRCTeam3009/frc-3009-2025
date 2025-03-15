@@ -117,8 +117,8 @@ class CoralWristCommand(commands2.Command):
 
 class CoralWristToPosition(commands2.Command):
     top = 45.0
-    middle = 60.0
-    bottom = 62.5
+    middle = 45.0
+    bottom = 45.0
     platform = 72.0 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
@@ -131,22 +131,30 @@ class CoralWristToPosition(commands2.Command):
         s = 0.0
         position = self.wrist.get_wrist_position()
         diff = self.target_position - position
+        # Slow down as we get closer
+        slow = 30
+        speed = DRIVE_SPEED
+        if position < 90:
+            speed = LOW_SPEED
+
+        if abs(diff) < slow:
+            factor = max(abs(diff) / slow, 0.25)
+            speed = speed * factor
+
         if diff < -2:
-            s = -DRIVE_SPEED
+            s = -(speed)
         elif diff > 2:
-            s = DRIVE_SPEED
+            s = (speed)
         else:
             s = 0
-
-        # Slow down as we get closer
-        slow = 25
-        if abs(diff) < slow:
-            s = s * abs(diff) / slow
 
         self.wrist.coral_wrist(s)
 
     def isFinished(self):
         return abs(self.wrist.get_wrist_position() - self.target_position) < 1
+    
+    def end(self, interrupted):
+        self.wrist.coral_wrist(0)
 
 class CoralWait(commands2.Command):
     def __init__(self, sensor: typing.Callable[[], bool]):
