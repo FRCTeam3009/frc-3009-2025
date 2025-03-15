@@ -378,9 +378,9 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(3.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(2.0)
     # Move sideways to lineup with the post
-    moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(1.0)
+    moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2.0)
     cmds.addCommands(moveElevatorToCoralPosition.alongWith(moveSideways))
 
     # Move the wrist up to position
@@ -388,14 +388,14 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(moveWrist)
 
     # Hold the wrist in position
-    holdWrist = subsystems.wrist.HoldPositionCommand(wrist).withTimeout(1.0)
+    holdWrist = subsystems.wrist.HoldPositionCommand(wrist).withTimeout(0.5)
     cmds.addCommands(holdWrist)
 
     # Shoot the coral out onto the post
-    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: -1 * subsystems.shooter.SPEED).withTimeout(3.0)
+    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: -1 * subsystems.shooter.SPEED).withTimeout(2.0)
     cmds.addCommands(shootCoral)
 
-    #drive backwards after firing
+    # drive backwards after firing
     driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(36), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3)
     cmds.addCommands(driveBackwards)
 
@@ -524,7 +524,7 @@ def offset_april_tag(drivetrain: subsystems.command_swerve_drivetrain.CommandSwe
     cmds = commands2.SequentialCommandGroup()
 
     # Line up according to the limelight AprilTag data.
-    alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(2.0)
+    alignAprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight).withTimeout(3.0)
     cmds.addCommands(alignAprilTag)
 
     return cmds
