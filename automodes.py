@@ -396,7 +396,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(shootCoral)
 
     #drive backwards after firing
-    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(12), subsystems.drive_robot_relative.SLOW_SPEED)
+    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(36), subsystems.drive_robot_relative.SLOW_SPEED)
     cmds.addCommands(driveBackwards)
 
     # Move the elevator back down to origin.

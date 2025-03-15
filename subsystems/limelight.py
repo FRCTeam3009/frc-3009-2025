@@ -8,7 +8,7 @@ import subsystems.drive_robot_relative
 import subsystems.limelight
 import subsystems.limelight_positions
 
-APRIL_TAG_OFFSET = wpimath.units.inchesToMeters(38)
+APRIL_TAG_OFFSET = wpimath.units.inchesToMeters(50)
 
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):

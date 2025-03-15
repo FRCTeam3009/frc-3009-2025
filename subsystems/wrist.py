@@ -14,6 +14,7 @@ from generated.tuner_constants import TunerConstants
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
 DRIVE_SPEED = 0.15
+TURBO_SPEED = 1.0
 
 RANGE = 90.0 # About 90 degrees of motion
 

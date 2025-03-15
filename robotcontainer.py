@@ -242,7 +242,7 @@ class RobotContainer:
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * subsystems.wrist.DRIVE_SPEED)
+            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed())
         )
         self._operator_joystick.joystick.povUp().whileTrue(
             subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)
@@ -292,7 +292,14 @@ class RobotContainer:
         """
 
         autoMode = self.auto_dashboard.get_current_auto_builder(self.drivetrain, self.front_limelight, self.back_limelight, self.elevator, self.wrist, self.shooter)
-        return autoMode            
+        return autoMode
+
+    def wrist_speed(self) -> float:
+        speed = subsystems.wrist.DRIVE_SPEED
+        if self._operator_joystick.joystick.back().getAsBoolean():
+            speed = subsystems.wrist.TURBO_SPEED
+
+        return speed
     
     def telemetry(self):
         self.climber.telemetry()
