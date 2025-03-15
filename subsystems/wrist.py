@@ -117,8 +117,8 @@ class CoralWristCommand(commands2.Command):
 
 class CoralWristToPosition(commands2.Command):
     top = 45.0
-    middle = 45.0
-    bottom = 45.0
+    middle = 55.0
+    bottom = 55.0
     platform = 72.0 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
