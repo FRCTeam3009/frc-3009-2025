@@ -6,8 +6,10 @@ import time
 import wpilib.simulation
 import typing
 import ntcore
+import wpimath.units
 import subsystems.wrist
 from generated.tuner_constants import TunerConstants
+import wpimath.controller
 
 SPEED = 0.3
 
@@ -31,11 +33,10 @@ class Elevator(commands2.Subsystem):
         self.elevator_publish = self.elevator_topic.publish()
         self.elevator_publish.set(0.0)
 
+        self.position_to_hold = 0
+
     def sim_update(self):
         self.prev_time = time.time()
-
-    def move_command(self, speed: typing.Callable[[], float]) -> commands2.Command:
-        return MoveElevatorCommand(self, speed)
     
     def change_height(self, speed: float):
         speed *= -1
@@ -87,29 +88,12 @@ class Elevator(commands2.Subsystem):
     
 
 class MoveElevatorCommand(commands2.Command):
-    def __init__(self, elevator: Elevator, speed: typing.Callable[[], bool]):
+    def __init__(self, elevator: Elevator, amount: typing.Callable[[], float]):
         self.elevator = elevator
-        self.speed = speed
-        self.addRequirements(self.elevator)
-
-        self.command_timer = wpilib.Timer()
-        self.ntcore_instance = ntcore.NetworkTableInstance.getDefault()
-        self.commands = self.ntcore_instance.getTable("commands")
-        self.command_topic = self.commands.getFloatTopic("MoveElevator")
-        self.command_publish = self.command_topic.publish()
-        self.command_publish.set(0.0)
-
-    def initialize(self):
-        self.command_timer.reset()
-        self.command_timer.start()
-        
+        self.amount = amount
+    
     def execute(self):
-        self.elevator.change_height(self.speed())
-
-        self.command_publish.set(self.command_timer.get())
-        
-    def end(self, interrupted):
-        self.elevator.change_height(0)
+        self.elevator.position_to_hold += self.amount()
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
@@ -121,46 +105,25 @@ class MoveElevatorToPosition(commands2.Command):
     lower_limit = 6.2
     auto_pose = -10
     
-    def __init__(self, elevator: Elevator, position : float, speed : float = 0.3):
+    def __init__(self, elevator: Elevator, position : float):
         self.elevator = elevator
         self.position = position
-        self.speed = speed
-        self.addRequirements(self.elevator)
-
-        self.command_timer = wpilib.Timer()
-        self.ntcore_instance = ntcore.NetworkTableInstance.getDefault()
-        self.commands = self.ntcore_instance.getTable("commands")
-        self.command_topic = self.commands.getFloatTopic("MoveElevator")
-        self.command_publish = self.command_topic.publish()
-        self.command_publish.set(0.0)
-
-    def initialize(self):
-        self.command_timer.reset()
-        self.command_timer.start()
 
     def execute(self):
-        if self.elevator.get_position() < self.position:
-            self.elevator.change_height(-self.speed)
-        else:
-            self.elevator.change_height(self.speed)
-
-        self.command_publish.set(self.command_timer.get())
+        self.elevator.position_to_hold = self.position
 
     def isFinished(self):
-        return abs(self.elevator.get_position() - self.position) < 0.5
-    
-    def end(self, interrupted):
-        self.elevator.change_height(0)
+        return True
 
 class HoldPositionCommand(commands2.Command):
     def __init__(self, elevator: Elevator):
         self.elevator = elevator
         self.addRequirements(self.elevator)
 
-    def initialize(self):
-        self.position_to_hold = self.elevator.get_position()
+        self.elevatorPID = wpimath.controller.PIDController(0, 0, 0)
+        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(0, 0, 0)
     
     def execute(self):
-        difference = self.elevator.get_position() - self.position_to_hold
-        motor_power = difference * 0.1
-        self.elevator.change_height(motor_power)
+        feedback = self.elevatorPID.calculate(self.elevator.get_position(), self.elevator.position_to_hold)
+        feedforward = self.elevatorFeedForward.calculate(self.elevator.main_motor.get_velocity().value_as_double)
+        self.elevator.main_motor.setVoltage(feedback + feedforward)

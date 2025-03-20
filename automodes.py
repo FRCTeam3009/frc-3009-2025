@@ -383,7 +383,7 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose, subsystems.elevator.SPEED).withTimeout(2.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose).withTimeout(2.0)
     # Move sideways to lineup with the post
     moveSideways = subsystems.drive_robot_relative.drive_sideways_command(drivetrain, subsystems.drive_robot_relative.CORAL_POST_OFFSET, subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(2.0)
     cmds.addCommands(moveElevatorToCoralPosition.alongWith(moveSideways))
@@ -391,10 +391,6 @@ def place_coral(cmd: AutoCommand,
     # Move the wrist up to position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose).withTimeout(1.0)
     cmds.addCommands(moveWrist)
-
-    # Hold the wrist in position
-    holdWrist = subsystems.wrist.HoldPositionCommand(wrist).withTimeout(0.5)
-    cmds.addCommands(holdWrist)
 
     # Shoot the coral out onto the post
     shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: -1 * subsystems.shooter.SPEED).withTimeout(2.0)
@@ -417,7 +413,7 @@ def pickup_coral(limelight: subsystems.limelight.Limelight,
     #cmds.addCommands(alignAprilTag)
 
     # Move the elevator into position
-    moveElevator = subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.pickup, subsystems.elevator.SPEED).withTimeout(1.0)
+    moveElevator = subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.pickup).withTimeout(1.0)
     # Move the wrist into position
     moveWrist = subsystems.wrist.CoralWristToPosition(wrist, subsystems.wrist.CoralWristToPosition.pickup).withTimeout(1.0)
     cmds.addCommands(moveElevator.alongWith(moveWrist))

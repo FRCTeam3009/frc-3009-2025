@@ -231,7 +231,7 @@ class RobotContainer:
         )
 
         commands2.button.Trigger(self._operator_joystick.is_left_stick_moved).whileTrue(
-            self.elevator.move_command(self._operator_joystick.get_left_stick_y)
+            subsystems.elevator.MoveElevatorCommand(self.elevator, lambda: self._operator_joystick.get_left_stick_y() * subsystems.elevator.SPEED)
         )
 
         commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
@@ -242,7 +242,7 @@ class RobotContainer:
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.CoralWristCommand(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed())
+            subsystems.wrist.IncrementWrist(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed())
         )
         self._operator_joystick.joystick.povUp().whileTrue(
             subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)
@@ -282,7 +282,6 @@ class RobotContainer:
         self._operator_joystick.joystick.leftBumper().onTrue(
             subsystems.wrist.MoveIntake(self.wrist.intake_servo)
         )
-        
 
     
     def getAutonomousCommand(self) -> commands2.Command:

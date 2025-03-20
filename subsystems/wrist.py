@@ -7,6 +7,8 @@ import wpilib
 import typing
 import wpimath.controller
 import wpimath.trajectory
+import math
+from wpimath.controller import PIDController, ArmFeedforward
 
 import wpimath.units
 from generated.tuner_constants import TunerConstants
@@ -15,8 +17,6 @@ HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
 DRIVE_SPEED = 0.15
 TURBO_SPEED = 1.0
-
-RANGE = 90.0 # About 90 degrees of motion
 
 class Wrist(commands2.Subsystem):
     def __init__(self):
@@ -63,6 +63,7 @@ class Wrist(commands2.Subsystem):
         self.intake_servo_publish = self.intake_servo_topic.publish()
         self.intake_servo_publish.set(0.0)
 
+        self.position_to_hold = 0.0
 
     def coral_wrist(self, speed: float):
         if self.get_wrist_position() > self.up_wrist_limit and speed > 0.0:
@@ -86,11 +87,11 @@ class Wrist(commands2.Subsystem):
         self.intake_servo_publish.set(self.intake_servo.getPosition())
 
     def get_wrist_position(self) -> float:
-        # NOTE absolute position wraps around from 0 to 360 (i.e. 361 => 1 and -1 => 359)
-        # (we set a factor of 360 on the SparkMax to give us degrees of motion)
+        # NOTE absolute position wraps around from 0 (i.e. -1 => 359 degrees)
+        # (we set a factor of 2*pi on the SparkMax to give us radians)
         pos = self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
-        if pos > 300:
-            pos -= 360
+        if pos > math.pi:
+            pos -= math.pi
         return pos
     
     def coral_sensor_receive(self):
@@ -103,19 +104,8 @@ class Wrist(commands2.Subsystem):
             return True
         return False
 
-class CoralWristCommand(commands2.Command):
-    def __init__(self, wrist: Wrist, speed: typing.Callable[[], bool]):
-        self.wrist = wrist
-        self.speed = speed
-        self.addRequirements(self.wrist)
-    
-    def execute(self):
-        self.wrist.coral_wrist(self.speed())
-    
-    def end(self, interrupted):
-        self.wrist.coral_wrist(0)
-
 class CoralWristToPosition(commands2.Command):
+    # TODO convert to radians and measure values
     top = 45.0
     middle = 55.0
     bottom = 55.0
@@ -123,38 +113,13 @@ class CoralWristToPosition(commands2.Command):
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
         self.wrist = wrist
-        self.addRequirements(self.wrist)
-
-        self.target_position = position
+        self.position = position
 
     def execute(self):
-        s = 0.0
-        position = self.wrist.get_wrist_position()
-        diff = self.target_position - position
-        # Slow down as we get closer
-        slow = 30
-        speed = DRIVE_SPEED
-        if position < 90:
-            speed = LOW_SPEED
-
-        if abs(diff) < slow:
-            factor = max(abs(diff) / slow, 0.25)
-            speed = speed * factor
-
-        if diff < -2:
-            s = -(speed)
-        elif diff > 2:
-            s = (speed)
-        else:
-            s = 0
-
-        self.wrist.coral_wrist(s)
+        self.wrist.position_to_hold = self.position
 
     def isFinished(self):
-        return abs(self.wrist.get_wrist_position() - self.target_position) < 1
-    
-    def end(self, interrupted):
-        self.wrist.coral_wrist(0)
+        return True
 
 class CoralWait(commands2.Command):
     def __init__(self, sensor: typing.Callable[[], bool]):
@@ -180,31 +145,15 @@ class HoldPositionCommand(commands2.Command):
         self.wrist = wrist
         self.addRequirements(self.wrist)
 
-    def initialize(self):
-        self.target_position = self.wrist.get_wrist_position()
+        self.wristPID = PIDController(0.75, 0, 0)
+        self.wristFeedforward = ArmFeedforward(0, 0.15, 0)
 
     def execute(self):
-        s = 0.0
-        position = self.wrist.get_wrist_position()
-        diff = self.target_position - position
-        # Slow down as we get closer
-        slow = 30
-        speed = HOLD_SPEED
-        if position < 90:
-            speed = LOW_SPEED
-
-        if abs(diff) < slow:
-            factor = max(abs(diff) / slow, 0.25)
-            speed = speed * factor
-
-        if diff < -2:
-            s = -(speed)
-        elif diff > 2:
-            s = (speed)
-        else:
-            s = 0
-
-        self.wrist.coral_wrist(s)
+        feedback = self.wristPID.calculate(self.wrist.get_wrist_position(), self.wrist.position_to_hold)
+        # Feed forward expects straight outward to be 0 so offset by -90 degrees
+        feedforward = self.wristFeedforward.calculate(self.wrist.get_wrist_position() - math.pi / 2, self.wrist.coral_wrist_motor.getAbsoluteEncoder().getVelocity())
+        self.wrist.coral_wrist_motor.setVoltage(feedback + feedforward)
+        #print("Voltage Applied: " + str(feedback + feedforward))
 
 class MoveIntake(commands2.Command):
     pickup_pose = 1.0
@@ -221,3 +170,11 @@ class MoveIntake(commands2.Command):
 
     def isFinished(self):
         return True
+    
+class IncrementWrist(commands2.Command):
+    def __init__(self, wrist: Wrist, amt: typing.Callable[[], float]):
+        self.amount = amt
+        self.wrist = wrist
+
+    def execute(self):
+        self.wrist.position_to_hold += self.amount()
