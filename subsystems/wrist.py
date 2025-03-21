@@ -15,8 +15,10 @@ from generated.tuner_constants import TunerConstants
 
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
-DRIVE_SPEED = 0.15
-TURBO_SPEED = 1.0
+DRIVE_SPEED = 0.03
+TURBO_SPEED = 0.15
+
+ROTATIONS_TO_RADIANS = math.pi * 2.0 / 9.0 # 9:1 gear ratio
 
 class Wrist(commands2.Subsystem):
     def __init__(self):
@@ -64,6 +66,8 @@ class Wrist(commands2.Subsystem):
         self.intake_servo_publish.set(0.0)
 
         self.position_to_hold = 0.0
+        #self.coral_wrist_motor.getEncoder().setPosition(self.coral_wrist_motor.getAbsoluteEncoder().getPosition())
+        self.coral_wrist_motor.getEncoder().setPosition(0.0)
 
     def coral_wrist(self, speed: float):
         if self.get_wrist_position() > self.up_wrist_limit and speed > 0.0:
@@ -88,8 +92,7 @@ class Wrist(commands2.Subsystem):
 
     def get_wrist_position(self) -> float:
         # NOTE absolute position wraps around from 0 (i.e. -1 => 359 degrees)
-        # (we set a factor of 2*pi on the SparkMax to give us radians)
-        pos = self.coral_wrist_motor.getAbsoluteEncoder().getPosition()
+        pos = self.coral_wrist_motor.getEncoder().getPosition() * ROTATIONS_TO_RADIANS
         if pos > math.pi:
             pos -= math.pi
         return pos
@@ -105,7 +108,7 @@ class Wrist(commands2.Subsystem):
         return False
 
 class CoralWristToPosition(commands2.Command):
-    # TODO convert to radians and measure values
+    # TODO convert to rotations and measure values
     top = 45.0
     middle = 55.0
     bottom = 55.0
@@ -145,15 +148,18 @@ class HoldPositionCommand(commands2.Command):
         self.wrist = wrist
         self.addRequirements(self.wrist)
 
-        self.wristPID = PIDController(0.75, 0, 0)
-        self.wristFeedforward = ArmFeedforward(0, 0.15, 0)
+        self.wristPID = PIDController(5, 0, 0)
+        self.wristFeedforward = ArmFeedforward(0.05, 1.38, 0.18, 0.1)
 
     def execute(self):
-        feedback = self.wristPID.calculate(self.wrist.get_wrist_position(), self.wrist.position_to_hold)
+        print(str(self.wrist.position_to_hold * ROTATIONS_TO_RADIANS))
+        position = self.wrist.position_to_hold * ROTATIONS_TO_RADIANS
+        feedback = self.wristPID.calculate(self.wrist.get_wrist_position(), position)
         # Feed forward expects straight outward to be 0 so offset by -90 degrees
-        feedforward = self.wristFeedforward.calculate(self.wrist.get_wrist_position() - math.pi / 2, self.wrist.coral_wrist_motor.getAbsoluteEncoder().getVelocity())
+        ninety_degrees = math.pi / 2.0
+        feedforward = self.wristFeedforward.calculate(self.wrist.get_wrist_position() - ninety_degrees, self.wrist.coral_wrist_motor.getAbsoluteEncoder().getVelocity())
         self.wrist.coral_wrist_motor.setVoltage(feedback + feedforward)
-        #print("Voltage Applied: " + str(feedback + feedforward))
+        print("Voltage Applied: " + str(feedback) + " " + str(feedforward))
 
 class MoveIntake(commands2.Command):
     pickup_pose = 1.0
