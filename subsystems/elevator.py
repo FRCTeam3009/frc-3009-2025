@@ -22,7 +22,7 @@ class Elevator(commands2.Subsystem):
         self.follower_motor.set_control(phoenix6.controls.follower.Follower(TunerConstants.elevator_main_id, False))
 
         self.start_position = self.main_motor.get_position().value_as_double - 1
-        self.up_limit = self.start_position + MoveElevatorToPosition.top # NOTE motor moves backwards to "up" limit is negative.
+        self.up_limit = self.start_position + MoveElevatorToPosition.L4 # NOTE motor moves backwards to "up" limit is negative.
         self.lower_limit = MoveElevatorToPosition.lower_limit
         self.prev_time = time.time()
 
@@ -97,10 +97,10 @@ class MoveElevatorCommand(commands2.Command):
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    top = -87.5
-    middle = -49
-    bottom = -16
-    platform = 1.0
+    L4 = -87.5
+    L3 = -49
+    L2 = -16
+    L1 = 1.0
     pickup = 1.0
     lower_limit = 6.2
     auto_pose = -10

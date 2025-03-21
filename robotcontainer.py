@@ -265,19 +265,19 @@ class RobotContainer:
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L1).alongWith(
-            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.platform))
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L1))
         )
         self._operator_joystick.joystick.y().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L3).alongWith(
-            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.middle))
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L3))
         )
         self._operator_joystick.joystick.x().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L2).alongWith(
-            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.bottom))
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L2))
         )
         self._operator_joystick.joystick.b().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L4).alongWith(
-            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.top))
+            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L4))
         )
         self._operator_joystick.joystick.leftBumper().onTrue(
             subsystems.wrist.MoveIntake(self.wrist.intake_servo)
