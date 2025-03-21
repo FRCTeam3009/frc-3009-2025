@@ -108,11 +108,11 @@ class Wrist(commands2.Subsystem):
         return False
 
 class CoralWristToPosition(commands2.Command):
-    # TODO convert to rotations and measure values
-    top = 45.0
-    middle = 55.0
-    bottom = 55.0
-    platform = 72.0 # Platform is almost straight forward
+    # TODO measure values
+    L4 = wpimath.units.degreesToRotations(45.0)
+    L3 = wpimath.units.degreesToRotations(55.0)
+    L2 = wpimath.units.degreesToRotations(55.0)
+    L1 = wpimath.units.degreesToRotations(72.0) # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
         self.wrist = wrist
