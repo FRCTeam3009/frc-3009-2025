@@ -72,6 +72,9 @@ class Limelight(object):
 
         jsonStr = self.json_subscribe.get()
         if jsonStr is None or jsonStr == "":
+            for key in self.target_poses.keys():
+                val = wpimath.geometry.Pose2d(0.0, 0.0, 0.0)
+                self.target_poses[key].append_pose(val)
             return
         
         self.parsed = json.loads(jsonStr)
@@ -109,7 +112,7 @@ def lineup_apriltag_command(
         april_id: int,
         ) -> commands2.Command:
     
-    # TODO filtering is not workin, still goes to any april tag
+    # TODO this needs to be a lambda somehow. The targets are currently only evaluated on startup.
     tgtPose = limelight.target_poses[april_id]
     if (tgtPose is None or tgtPose.is_zero()):
         return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, wpimath.geometry.Transform2d(0, 0, 0), 0)

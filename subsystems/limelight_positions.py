@@ -35,10 +35,6 @@ class SmoothPosition(object):
             # return early if we didn't initialize the list
             return
         
-        if pose.X() == 0 and pose.Y() == 0 and pose.rotation().radians() == 0:
-            # return if the pose we were given was a zero pose
-            return
-        
         # Remove oldest pose and add a new one to the end.
         self.pose_list.pop(0)
         self.pose_list.append(pose)

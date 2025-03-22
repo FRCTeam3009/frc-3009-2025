@@ -402,7 +402,6 @@ def place_coral(cmd: AutoCommand,
 
     # Line up to april tag
     aprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight, cmd.april_tag_id).withTimeout(3.0)
-
     cmds.addCommands(aprilTag)
 
     # Move the wrist up to position
