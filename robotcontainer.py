@@ -110,11 +110,9 @@ class RobotContainer:
 
     def set_turbo_speed(self):
         self.speed_limit = subsystems.drive_robot_relative.TURBO_SPEED
-        print(self.speed_limit)
 
     def set_normal_speed(self):
         self.speed_limit = subsystems.drive_robot_relative.NORMAL_SPEED
-        print(self.speed_limit)
 
     def configureButtonBindings(self) -> None:
         """
@@ -256,9 +254,6 @@ class RobotContainer:
 
         self.drivetrain.register_telemetry(
             lambda state: self._logger.telemeterize(state)
-        )
-        self._driver_joystick.a().whileTrue(
-            subsystems.limelight.lineup_apriltag_command(self.drivetrain, self.front_limelight)
         )
         self._driver_joystick.b().whileTrue(
             subsystems.drive_robot_relative.drive_forward_command(self.drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, self.speed_limit)

@@ -11,7 +11,7 @@ import subsystems.wrist
 from generated.tuner_constants import TunerConstants
 import wpimath.controller
 
-SPEED = 1.5
+SPEED = 2.0
 
 class Elevator(commands2.Subsystem):
 
@@ -129,13 +129,11 @@ class MoveElevatorCommand(commands2.Command):
 
 
 class MoveElevatorToPosition(commands2.Command):
-    # NOTE Moving the elevator up is actually negative values.
-    # TODO update values again
-    upper_limit = 83
+    upper_limit = 84
     lower_limit = -12
     L4 = upper_limit
-    L3 = 42
-    L2 = 13.6
+    L3 = 40
+    L2 = 9.5
     L1 = lower_limit
     pickup = 1.0
     auto_pose = 10
@@ -152,27 +150,17 @@ class MoveElevatorToPosition(commands2.Command):
             self.elevator.position_to_hold = MoveElevatorToPosition.upper_limit
 
     def isFinished(self):
-        return True
+        return abs(self.elevator.get_position() - self.elevator.position_to_hold) < 0.5
 
 class HoldPositionCommand(commands2.Command):
     def __init__(self, elevator: Elevator):
         self.elevator = elevator
         self.addRequirements(self.elevator)
 
-        self.elevatorPID = wpimath.controller.PIDController(0, 0, 0)
-        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(0, 0, 0, 0)
+        self.elevatorPID = wpimath.controller.PIDController(0.1, 0.08, 0)
+        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(0.1, 0.05, 0.07, 0.02)
     
     def execute(self):
-        p = self.elevator.p_subscribe.get()
-        i = self.elevator.i_subscribe.get()
-        d = self.elevator.d_subscribe.get()
-        s = self.elevator.s_subscribe.get()
-        g = self.elevator.g_subscribe.get()
-        v = self.elevator.v_subscribe.get()
-        a = self.elevator.a_subscribe.get()
-        self.elevatorPID = wpimath.controller.PIDController(p, i, d)
-        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(s, g, v, a)
-
         feedback = self.elevatorPID.calculate(self.elevator.get_position(), self.elevator.position_to_hold)
         feedforward = self.elevatorFeedForward.calculate(self.elevator.main_motor.get_velocity().value_as_double)
         self.elevator.main_motor.setVoltage(feedback + feedforward)

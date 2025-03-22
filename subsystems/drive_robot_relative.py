@@ -7,6 +7,7 @@ import phoenix6.swerve
 
 FORWARD_OFFSET = wpimath.units.inchesToMeters(22.0) # inches away from the Coral posts
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(-3.0) # inches offset from center of AprilTag
+SMALL = wpimath.units.inchesToMeters(0.5)
 ONE_INCH = wpimath.units.inchesToMeters(1)
 TWO_INCHES = wpimath.units.inchesToMeters(2)
 
@@ -59,13 +60,13 @@ class DriveRobotRelativeCommand(commands2.Command):
             forward = self.speed
         elif compare_x < -ONE_INCH:
             forward = -1 * self.speed
-        if compare_y > ONE_INCH:
+        if compare_y > SMALL:
             horizontal = self.speed
-        elif compare_y < -ONE_INCH:
+        elif compare_y < -SMALL:
             horizontal = -1 * self.speed
-        if compare_r > 3:
+        if compare_r > 2:
             rotation = self.speed
-        elif compare_r < -3:
+        elif compare_r < -2:
             rotation = -1 * self.speed
 
         self.forward = forward
@@ -78,9 +79,9 @@ class DriveRobotRelativeCommand(commands2.Command):
 
         if abs(diff.X()) < ONE_INCH:
             self.forward = 0.0
-        if abs(diff.Y()) < ONE_INCH:
+        if abs(diff.Y()) < SMALL:
             self.horizontal = 0.0
-        if abs(diff.rotation().degrees()) < 5:
+        if abs(diff.rotation().degrees()) < 2:
             self.rotation = 0.0
         
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(self.forward).with_velocity_y(self.horizontal).with_rotational_rate(self.rotation)
@@ -91,7 +92,7 @@ class DriveRobotRelativeCommand(commands2.Command):
         current_pose = self.drive_train.get_state_copy().pose
         diff = self.end_pose - current_pose
 
-        return abs(diff.X()) < ONE_INCH and abs(diff.Y()) < ONE_INCH and abs(diff.rotation().degrees()) < 5
+        return abs(diff.X()) < ONE_INCH and abs(diff.Y()) < SMALL and abs(diff.rotation().degrees()) < 2
     
     def end(self, interrupted):
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)

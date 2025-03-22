@@ -28,12 +28,7 @@ def pose2d_from_botpose(botpose: list[float]) -> wpimath.geometry.Pose2d:
 
 class SmoothPosition(object):
     def __init__(self):
-        self.pose_list = list[wpimath.geometry.Pose2d]()
-
-        n = 0
-        while n < 10:
-            self.pose_list.append(wpimath.geometry.Pose2d(0.0, 0.0, 0.0))
-            n += 1
+        self.reset()
 
     def append_pose(self, pose: wpimath.geometry.Pose2d):
         if len(self.pose_list) == 0 or pose is None:
@@ -47,6 +42,18 @@ class SmoothPosition(object):
         # Remove oldest pose and add a new one to the end.
         self.pose_list.pop(0)
         self.pose_list.append(pose)
+
+    def reset(self):
+        self.pose_list = list[wpimath.geometry.Pose2d]()
+
+        n = 0
+        while n < 10:
+            self.pose_list.append(wpimath.geometry.Pose2d(0.0, 0.0, 0.0))
+            n += 1
+
+    def is_zero(self):
+        avg = self.get_average_pose()
+        return avg.X() == 0 and avg.Y() == 0 and avg.rotation().degrees() == 0
 
     def get_average_pose(self):
         x = 0.0

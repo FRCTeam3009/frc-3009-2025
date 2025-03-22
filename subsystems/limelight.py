@@ -7,8 +7,10 @@ import wpimath
 import subsystems.drive_robot_relative
 import subsystems.limelight
 import subsystems.limelight_positions
+import json
 
 APRIL_TAG_OFFSET = 0.81
+CORAL_OFFSET = 0
 
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
@@ -26,6 +28,25 @@ class Limelight(object):
         # Use pose2d_from_targetpose() to make this easier to deal with.
         self.targetpose_botspacetopic = self.table.getDoubleArrayTopic("targetpose_robotspace")
         self.targetpose_botspacesub = self.targetpose_botspacetopic.subscribe([])
+
+        self.json_topic = self.table.getStringTopic("json")
+        self.json_subscribe = self.json_topic.subscribe("")
+        self.target_poses = {6: subsystems.limelight_positions.SmoothPosition(),
+                            7: subsystems.limelight_positions.SmoothPosition(),
+                            8: subsystems.limelight_positions.SmoothPosition(),
+                            9: subsystems.limelight_positions.SmoothPosition(),
+                            10: subsystems.limelight_positions.SmoothPosition(),
+                            11: subsystems.limelight_positions.SmoothPosition(),
+                            17: subsystems.limelight_positions.SmoothPosition(),
+                            18: subsystems.limelight_positions.SmoothPosition(),
+                            19: subsystems.limelight_positions.SmoothPosition(),
+                            20: subsystems.limelight_positions.SmoothPosition(),
+                            21: subsystems.limelight_positions.SmoothPosition(),
+                            22: subsystems.limelight_positions.SmoothPosition(),
+                            1: subsystems.limelight_positions.SmoothPosition(),
+                            2: subsystems.limelight_positions.SmoothPosition(),
+                            12: subsystems.limelight_positions.SmoothPosition(),
+                            13: subsystems.limelight_positions.SmoothPosition()}
 
         self.smooth_botpose = subsystems.limelight_positions.SmoothPosition()
         self.smooth_targetpose = subsystems.limelight_positions.SmoothPosition()
@@ -50,9 +71,27 @@ class Limelight(object):
         botpose2d = subsystems.limelight_positions.pose2d_from_targetpose(botpose)
         self.smooth_botpose.append_pose(botpose2d)
 
-        targetpose = self.targetpose_botspacesub.get()
-        targetpose2d = subsystems.limelight_positions.pose2d_from_targetpose(targetpose)
-        self.smooth_targetpose.append_pose(targetpose2d)
+        #targetpose = self.targetpose_botspacesub.get()
+        #targetpose2d = subsystems.limelight_positions.pose2d_from_targetpose(targetpose)
+        #self.smooth_targetpose.append_pose(targetpose2d)
+
+        jsonStr = self.json_subscribe.get()
+        if jsonStr is None or jsonStr == "":
+            return
+        
+        self.parsed = json.loads(jsonStr)
+        for key in self.target_poses.keys():
+            saw_tag = False
+            for f in self.parsed["Fiducial"]:
+                id = f["fID"]
+                if id == key:
+                    val = subsystems.limelight_positions.pose2d_from_targetpose(f["t6t_rs"])
+                    self.target_poses[key].append_pose(val)
+                    saw_tag = True
+            if not saw_tag:
+                val = (wpimath.geometry.Pose2d(0.0, 0.0, 0.0))
+                self.target_poses[key].append_pose(val)
+
 
     def odometry_command(self) -> commands2.Command:
         return commands2.cmd.run(self.odometry_update).repeatedly().ignoringDisable(True)
@@ -68,14 +107,20 @@ class Limelight(object):
                                     pose.rotation().degrees()]
         self.bot_pose_publish.set(self.bot_pose_target_var)
 
+
 def lineup_apriltag_command(
         drivetrain : subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
         limelight : Limelight,
+        april_id: int,
         ) -> commands2.Command:
     
-    targetpose = limelight.smooth_targetpose.get_average_pose()
+    tgtPose = limelight.target_poses[april_id]
+    if (tgtPose is None or tgtPose.is_zero()):
+        return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, wpimath.geometry.Pose2d(0, 0, 0), 0)
+    targetpose = tgtPose.get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
     x = targetpose.X() - APRIL_TAG_OFFSET
-    offset = wpimath.geometry.Transform2d(x, targetpose.Y(), targetpose.rotation())
+    y = targetpose.Y() - CORAL_OFFSET
+    offset = wpimath.geometry.Transform2d(x, y, targetpose.rotation())
 
     return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
