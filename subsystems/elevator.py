@@ -11,7 +11,7 @@ import subsystems.wrist
 from generated.tuner_constants import TunerConstants
 import wpimath.controller
 
-SPEED = 0.3
+SPEED = 1.5
 
 class Elevator(commands2.Subsystem):
 
@@ -32,6 +32,37 @@ class Elevator(commands2.Subsystem):
         self.elevator_topic = self.nt_table.getDoubleTopic("elevator_position")
         self.elevator_publish = self.elevator_topic.publish()
         self.elevator_publish.set(0.0)
+
+        self.p_topic = self.nt_table.getDoubleTopic("P")
+        self.p_subscribe = self.p_topic.subscribe(0.15)
+        self.p_publish = self.p_topic.publish()
+        self.p_publish.set(0.15)
+        self.i_topic = self.nt_table.getDoubleTopic("I")
+        self.i_subscribe = self.i_topic.subscribe(0.08)
+        self.i_publish = self.i_topic.publish()
+        self.i_publish.set(0.08)
+        self.d_topic = self.nt_table.getDoubleTopic("D")
+        self.d_subscribe = self.d_topic.subscribe(0.0)
+        self.d_publish = self.d_topic.publish()
+        self.d_publish.set(0)
+
+        
+        self.s_topic = self.nt_table.getDoubleTopic("Ks")
+        self.s_subscribe = self.s_topic.subscribe(0.1)
+        self.s_publish = self.s_topic.publish()
+        self.s_publish.set(0.1)
+        self.g_topic = self.nt_table.getDoubleTopic("Kg")
+        self.g_subscribe = self.g_topic.subscribe(0.05)
+        self.g_publish = self.g_topic.publish()
+        self.g_publish.set(0.05)
+        self.v_topic = self.nt_table.getDoubleTopic("Kv")
+        self.v_subscribe = self.v_topic.subscribe(0.07)
+        self.v_publish = self.v_topic.publish()
+        self.v_publish.set(0.07)
+        self.a_topic = self.nt_table.getDoubleTopic("Ka")
+        self.a_subscribe = self.a_topic.subscribe(0.02)
+        self.a_publish = self.a_topic.publish()
+        self.a_publish.set(0.02)
 
         self.position_to_hold = 0
 
@@ -83,9 +114,6 @@ class Elevator(commands2.Subsystem):
     
     def get_position(self) -> float:
         return self.main_motor.get_position().value_as_double
-    
-
-    
 
 class MoveElevatorCommand(commands2.Command):
     def __init__(self, elevator: Elevator, amount: typing.Callable[[], float]):
@@ -94,16 +122,22 @@ class MoveElevatorCommand(commands2.Command):
     
     def execute(self):
         self.elevator.position_to_hold += self.amount()
+        if (self.elevator.position_to_hold < MoveElevatorToPosition.lower_limit):
+            self.elevator.position_to_hold = MoveElevatorToPosition.lower_limit
+        elif (self.elevator.position_to_hold > MoveElevatorToPosition.upper_limit):
+            self.elevator.position_to_hold = MoveElevatorToPosition.upper_limit
+
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    L4 = -87.5
-    L3 = -49
-    L2 = -16
-    L1 = 1.0
+    upper_limit = 81
+    lower_limit = -12
+    L4 = upper_limit
+    L3 = 51
+    L2 = 22
+    L1 = lower_limit
     pickup = 1.0
-    lower_limit = 6.2
-    auto_pose = -10
+    auto_pose = 10
     
     def __init__(self, elevator: Elevator, position : float):
         self.elevator = elevator
@@ -111,6 +145,10 @@ class MoveElevatorToPosition(commands2.Command):
 
     def execute(self):
         self.elevator.position_to_hold = self.position
+        if (self.elevator.position_to_hold < MoveElevatorToPosition.lower_limit):
+            self.elevator.position_to_hold = MoveElevatorToPosition.lower_limit
+        elif (self.elevator.position_to_hold > MoveElevatorToPosition.upper_limit):
+            self.elevator.position_to_hold = MoveElevatorToPosition.upper_limit
 
     def isFinished(self):
         return True
@@ -121,9 +159,19 @@ class HoldPositionCommand(commands2.Command):
         self.addRequirements(self.elevator)
 
         self.elevatorPID = wpimath.controller.PIDController(0, 0, 0)
-        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(0, 0, 0)
+        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(0, 0, 0, 0)
     
     def execute(self):
+        p = self.elevator.p_subscribe.get()
+        i = self.elevator.i_subscribe.get()
+        d = self.elevator.d_subscribe.get()
+        s = self.elevator.s_subscribe.get()
+        g = self.elevator.g_subscribe.get()
+        v = self.elevator.v_subscribe.get()
+        a = self.elevator.a_subscribe.get()
+        self.elevatorPID = wpimath.controller.PIDController(p, i, d)
+        self.elevatorFeedForward = wpimath.controller.ElevatorFeedforward(s, g, v, a)
+
         feedback = self.elevatorPID.calculate(self.elevator.get_position(), self.elevator.position_to_hold)
         feedforward = self.elevatorFeedForward.calculate(self.elevator.main_motor.get_velocity().value_as_double)
         self.elevator.main_motor.setVoltage(feedback + feedforward)

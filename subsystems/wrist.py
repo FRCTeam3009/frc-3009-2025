@@ -15,7 +15,7 @@ from generated.tuner_constants import TunerConstants
 
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
-DRIVE_SPEED = 0.03
+DRIVE_SPEED = 0.06
 TURBO_SPEED = 0.15
 
 ROTATIONS_TO_RADIANS = math.pi * 2.0 / 9.0 # 9:1 gear ratio
@@ -58,6 +58,37 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_top2_topic = self.nt_table.getBooleanTopic("coral_top2")
         self.coral_sensor_top2_publish = self.coral_sensor_top2_topic.publish()
         self.coral_sensor_top2_publish.set(False)
+
+        self.p_topic = self.nt_table.getDoubleTopic("P")
+        self.p_subscribe = self.p_topic.subscribe(5.0)
+        self.p_publish = self.p_topic.publish()
+        self.p_publish.set(5)
+        self.i_topic = self.nt_table.getDoubleTopic("I")
+        self.i_subscribe = self.i_topic.subscribe(8)
+        self.i_publish = self.i_topic.publish()
+        self.i_publish.set(8)
+        self.d_topic = self.nt_table.getDoubleTopic("D")
+        self.d_subscribe = self.d_topic.subscribe(0.16)
+        self.d_publish = self.d_topic.publish()
+        self.d_publish.set(0.16)
+
+        
+        self.s_topic = self.nt_table.getDoubleTopic("Ks")
+        self.s_subscribe = self.s_topic.subscribe(0.05)
+        self.s_publish = self.s_topic.publish()
+        self.s_publish.set(0.05)
+        self.g_topic = self.nt_table.getDoubleTopic("Kg")
+        self.g_subscribe = self.g_topic.subscribe(1.38)
+        self.g_publish = self.g_topic.publish()
+        self.g_publish.set(1.38)
+        self.v_topic = self.nt_table.getDoubleTopic("Kv")
+        self.v_subscribe = self.v_topic.subscribe(0.18)
+        self.v_publish = self.v_topic.publish()
+        self.v_publish.set(0.18)
+        self.a_topic = self.nt_table.getDoubleTopic("Ka")
+        self.a_subscribe = self.a_topic.subscribe(0.1)
+        self.a_publish = self.a_topic.publish()
+        self.a_publish.set(0.1)
 
         self.intake_servo = wpilib.Servo(0)
 
@@ -108,11 +139,12 @@ class Wrist(commands2.Subsystem):
         return False
 
 class CoralWristToPosition(commands2.Command):
-    # TODO measure values
-    L4 = wpimath.units.degreesToRotations(45.0)
-    L3 = wpimath.units.degreesToRotations(55.0)
-    L2 = wpimath.units.degreesToRotations(55.0)
-    L1 = wpimath.units.degreesToRotations(72.0) # Platform is almost straight forward
+    upper_limit = 3.26
+    lower_limit= 0.0    
+    L4 = 1.5
+    L3 = 1.71
+    L2 = 1.71
+    L1 = 2.19 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
         self.wrist = wrist
@@ -120,6 +152,10 @@ class CoralWristToPosition(commands2.Command):
 
     def execute(self):
         self.wrist.position_to_hold = self.position
+        if (self.wrist.position_to_hold < CoralWristToPosition.lower_limit):
+            self.wrist.position_to_hold = CoralWristToPosition.lower_limit
+        elif (self.wrist.position_to_hold > CoralWristToPosition.upper_limit):
+            self.wrist.position_to_hold = CoralWristToPosition.upper_limit
 
     def isFinished(self):
         return True
@@ -152,6 +188,16 @@ class HoldPositionCommand(commands2.Command):
         self.wristFeedforward = ArmFeedforward(0.05, 1.38, 0.18, 0.1)
 
     def execute(self):
+        p = self.wrist.p_subscribe.get()
+        i = self.wrist.i_subscribe.get()
+        d = self.wrist.d_subscribe.get()
+        s = self.wrist.s_subscribe.get()
+        g = self.wrist.g_subscribe.get()
+        v = self.wrist.v_subscribe.get()
+        a = self.wrist.a_subscribe.get()
+        self.wristPID = PIDController(p, i, d)
+        self.wristFeedforward = ArmFeedforward(s, g, v, a)
+
         print(str(self.wrist.position_to_hold * ROTATIONS_TO_RADIANS))
         position = self.wrist.position_to_hold * ROTATIONS_TO_RADIANS
         feedback = self.wristPID.calculate(self.wrist.get_wrist_position(), position)
@@ -184,3 +230,7 @@ class IncrementWrist(commands2.Command):
 
     def execute(self):
         self.wrist.position_to_hold += self.amount()
+        if (self.wrist.position_to_hold < CoralWristToPosition.lower_limit):
+            self.wrist.position_to_hold = CoralWristToPosition.lower_limit
+        elif (self.wrist.position_to_hold > CoralWristToPosition.upper_limit):
+            self.wrist.position_to_hold = CoralWristToPosition.upper_limit
