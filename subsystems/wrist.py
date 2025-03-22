@@ -15,10 +15,10 @@ from generated.tuner_constants import TunerConstants
 
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
-DRIVE_SPEED = 0.06
+DRIVE_SPEED = 0.3
 TURBO_SPEED = 0.15
 
-ROTATIONS_TO_RADIANS = math.pi * 2.0 / 9.0 # 9:1 gear ratio
+ROTATIONS_TO_RADIANS = math.pi * 2.0 / 45.0 # 45:1 gear ratio
 
 class Wrist(commands2.Subsystem):
     def __init__(self):
@@ -60,35 +60,35 @@ class Wrist(commands2.Subsystem):
         self.coral_sensor_top2_publish.set(False)
 
         self.p_topic = self.nt_table.getDoubleTopic("P")
-        self.p_subscribe = self.p_topic.subscribe(5.0)
+        self.p_subscribe = self.p_topic.subscribe(4.0)
         self.p_publish = self.p_topic.publish()
-        self.p_publish.set(5)
+        self.p_publish.set(4)
         self.i_topic = self.nt_table.getDoubleTopic("I")
-        self.i_subscribe = self.i_topic.subscribe(8)
+        self.i_subscribe = self.i_topic.subscribe(0)
         self.i_publish = self.i_topic.publish()
-        self.i_publish.set(8)
+        self.i_publish.set(0)
         self.d_topic = self.nt_table.getDoubleTopic("D")
-        self.d_subscribe = self.d_topic.subscribe(0.16)
+        self.d_subscribe = self.d_topic.subscribe(0)
         self.d_publish = self.d_topic.publish()
-        self.d_publish.set(0.16)
+        self.d_publish.set(0)
 
         
         self.s_topic = self.nt_table.getDoubleTopic("Ks")
-        self.s_subscribe = self.s_topic.subscribe(0.05)
+        self.s_subscribe = self.s_topic.subscribe(0.01)
         self.s_publish = self.s_topic.publish()
-        self.s_publish.set(0.05)
+        self.s_publish.set(0.01)
         self.g_topic = self.nt_table.getDoubleTopic("Kg")
-        self.g_subscribe = self.g_topic.subscribe(1.38)
+        self.g_subscribe = self.g_topic.subscribe(0.1)
         self.g_publish = self.g_topic.publish()
-        self.g_publish.set(1.38)
+        self.g_publish.set(0.1)
         self.v_topic = self.nt_table.getDoubleTopic("Kv")
         self.v_subscribe = self.v_topic.subscribe(0.18)
         self.v_publish = self.v_topic.publish()
         self.v_publish.set(0.18)
         self.a_topic = self.nt_table.getDoubleTopic("Ka")
-        self.a_subscribe = self.a_topic.subscribe(0.1)
+        self.a_subscribe = self.a_topic.subscribe(0.01)
         self.a_publish = self.a_topic.publish()
-        self.a_publish.set(0.1)
+        self.a_publish.set(0.01)
 
         self.intake_servo = wpilib.Servo(0)
 
@@ -139,12 +139,12 @@ class Wrist(commands2.Subsystem):
         return False
 
 class CoralWristToPosition(commands2.Command):
-    upper_limit = 3.26
+    upper_limit = 15.35
     lower_limit= 0.0    
     L4 = 1.5
-    L3 = 1.71
-    L2 = 1.71
-    L1 = 2.19 # Platform is almost straight forward
+    L3 = 8.5
+    L2 = 8.5
+    L1 = 10 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
     def __init__(self, wrist: Wrist, position: float):
         self.wrist = wrist

@@ -130,11 +130,12 @@ class MoveElevatorCommand(commands2.Command):
 
 class MoveElevatorToPosition(commands2.Command):
     # NOTE Moving the elevator up is actually negative values.
-    upper_limit = 81
+    # TODO update values again
+    upper_limit = 83
     lower_limit = -12
     L4 = upper_limit
-    L3 = 51
-    L2 = 22
+    L3 = 42
+    L2 = 13.6
     L1 = lower_limit
     pickup = 1.0
     auto_pose = 10
