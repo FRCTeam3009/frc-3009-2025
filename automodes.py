@@ -185,7 +185,7 @@ def get_test_auto_lineup_to_coral(drivetrain: subsystems.command_swerve_drivetra
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    targetpose = front_limelight.smooth_targetpose.get_average_pose()
+    targetpose = front_limelight.target_poses[19].get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
     offset = wpimath.geometry.Transform2d(targetpose.X(), targetpose.Y(), targetpose.rotation())
 
@@ -257,7 +257,7 @@ def get_test_auto_lineup_and_place(drivetrain: subsystems.command_swerve_drivetr
     cmds = commands2.SequentialCommandGroup()
     cmds.addCommands(subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.auto_pose))
     cmds.addCommands(WaitCommand(drivetrain).withTimeout(1.0))
-    auto_command = AutoCommand(positions[20], AutoCommand.wait, subsystems.elevator.MoveElevatorToPosition.L1, subsystems.wrist.CoralWristToPosition.L1, 19)   
+    auto_command = AutoCommand(positions[19], AutoCommand.wait, subsystems.elevator.MoveElevatorToPosition.L1, subsystems.wrist.CoralWristToPosition.L1, 19)   
     cmds.addCommands(place_coral(auto_command, drivetrain, front_limelight, elevator, wrist, shooter))
     return cmds
 

@@ -49,7 +49,6 @@ class Limelight(object):
                             13: subsystems.limelight_positions.SmoothPosition()}
 
         self.smooth_botpose = subsystems.limelight_positions.SmoothPosition()
-        self.smooth_targetpose = subsystems.limelight_positions.SmoothPosition()
 
         self.lined_up_topic = self.table.getBooleanTopic("test lined up")
         self.lined_up_publish = self.lined_up_topic.publish()
@@ -71,10 +70,6 @@ class Limelight(object):
         botpose2d = subsystems.limelight_positions.pose2d_from_targetpose(botpose)
         self.smooth_botpose.append_pose(botpose2d)
 
-        #targetpose = self.targetpose_botspacesub.get()
-        #targetpose2d = subsystems.limelight_positions.pose2d_from_targetpose(targetpose)
-        #self.smooth_targetpose.append_pose(targetpose2d)
-
         jsonStr = self.json_subscribe.get()
         if jsonStr is None or jsonStr == "":
             return
@@ -89,7 +84,7 @@ class Limelight(object):
                     self.target_poses[key].append_pose(val)
                     saw_tag = True
             if not saw_tag:
-                val = (wpimath.geometry.Pose2d(0.0, 0.0, 0.0))
+                val = wpimath.geometry.Pose2d(0.0, 0.0, 0.0)
                 self.target_poses[key].append_pose(val)
 
 
@@ -100,7 +95,7 @@ class Limelight(object):
         self.drive_train.add_vision_measurement(self.smooth_botpose.get_average_pose(), 0.05)
     
     def telemetry(self):
-        pose = self.smooth_targetpose.get_average_pose()
+        pose = self.target_poses[19].get_average_pose()
         pose = subsystems.limelight_positions.correct_target_pose(pose)
         self.bot_pose_target_var = [wpimath.units.metersToInches(pose.X()), 
                                     wpimath.units.metersToInches(pose.Y()), 
@@ -114,9 +109,11 @@ def lineup_apriltag_command(
         april_id: int,
         ) -> commands2.Command:
     
+    # TODO filtering is not workin, still goes to any april tag
     tgtPose = limelight.target_poses[april_id]
     if (tgtPose is None or tgtPose.is_zero()):
-        return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, wpimath.geometry.Pose2d(0, 0, 0), 0)
+        return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, wpimath.geometry.Transform2d(0, 0, 0), 0)
+    
     targetpose = tgtPose.get_average_pose()
     targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
     x = targetpose.X() - APRIL_TAG_OFFSET
