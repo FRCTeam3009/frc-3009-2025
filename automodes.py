@@ -244,7 +244,7 @@ def get_test_auto_offset_apriltag(drivetrain: subsystems.command_swerve_drivetra
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    return subsystems.limelight.lineup_apriltag_command(drivetrain, front_limelight, 19).withTimeout(3.0)
+    return subsystems.limelight.lineupCommand(drivetrain, front_limelight, 19).withTimeout(3.0)
 
 
 def get_test_auto_lineup_and_place(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
@@ -401,7 +401,7 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Line up to april tag
-    aprilTag = subsystems.limelight.lineup_apriltag_command(drivetrain, limelight, cmd.april_tag_id).withTimeout(3.0)
+    aprilTag = subsystems.limelight.lineupCommand(drivetrain, limelight, cmd.april_tag_id).withTimeout(3.0)
     cmds.addCommands(aprilTag)
 
     # Move the wrist up to position

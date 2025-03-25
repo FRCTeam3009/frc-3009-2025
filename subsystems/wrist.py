@@ -15,7 +15,7 @@ from generated.tuner_constants import TunerConstants
 
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
-DRIVE_SPEED = 0.3
+DRIVE_SPEED = 0.6
 TURBO_SPEED = 0.15
 
 ROTATIONS_TO_RADIANS = math.pi * 2.0 / 45.0 # 45:1 gear ratio

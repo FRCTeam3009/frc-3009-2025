@@ -11,10 +11,6 @@ import subsystems.wrist
 from generated.tuner_constants import TunerConstants
 import wpimath.controller
 
-# TODO drill holes in things to make weight
-# TODO cut some aluminum to make weight
-# TODO test auto modes for tracking specific april tags
-
 SPEED = 2.0
 
 class Elevator(commands2.Subsystem):

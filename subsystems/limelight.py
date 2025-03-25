@@ -105,22 +105,28 @@ class Limelight(object):
                                     pose.rotation().degrees()]
         self.bot_pose_publish.set(self.bot_pose_target_var)
 
+class lineupCommand(commands2.Command):
+    def __init__(self, drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, limelight: Limelight, april_id: int):
+        self.drivetrain = drivetrain
+        self.limelight = limelight
+        self.april_id = april_id
+        self.command = commands2.Command()
 
-def lineup_apriltag_command(
-        drivetrain : subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
-        limelight : Limelight,
-        april_id: int,
-        ) -> commands2.Command:
-    
-    # TODO this needs to be a lambda somehow. The targets are currently only evaluated on startup.
-    tgtPose = limelight.target_poses[april_id]
-    if (tgtPose is None or tgtPose.is_zero()):
-        return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, wpimath.geometry.Transform2d(0, 0, 0), 0)
-    
-    targetpose = tgtPose.get_average_pose()
-    targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
-    x = targetpose.X() - APRIL_TAG_OFFSET
-    y = targetpose.Y() - CORAL_OFFSET
-    offset = wpimath.geometry.Transform2d(x, y, targetpose.rotation())
+    def initialize(self):
+        tgtPose = self.limelight.target_poses[self.april_id]
+        if (tgtPose is None or tgtPose.is_zero()):
+            self.command = subsystems.drive_robot_relative.DriveRobotRelativeCommand(self.drivetrain, wpimath.geometry.Transform2d(0, 0, 0), 0)
+            return
+        targetpose = tgtPose.get_average_pose()
+        targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
+        x = targetpose.X() - APRIL_TAG_OFFSET
+        y = targetpose.Y() - CORAL_OFFSET
+        offset = wpimath.geometry.Transform2d(x, y, targetpose.rotation())
+        self.command = subsystems.drive_robot_relative.DriveRobotRelativeCommand(self.drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
 
-    return subsystems.drive_robot_relative.DriveRobotRelativeCommand(drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
+    
+    def execute(self):
+        self.command.execute()
+    
+    def isFinished(self):
+        return self.command.isFinished()
