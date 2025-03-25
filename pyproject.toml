@@ -1,6 +1,6 @@
 [tool.robotpy]
 
-robotpy_version = "2025.3.1.1"
+robotpy_version = "2025.3.2.0"
 
 robotpy_extras = [
     "all",
