@@ -26,7 +26,6 @@ class Wrist(commands2.Subsystem):
 
         self.coral_wrist_motor = rev.SparkMax(TunerConstants.coral_wrist_id, rev.SparkLowLevel.MotorType.kBrushless)
         self.coral_wrist_sim = rev.SparkMaxSim(self.coral_wrist_motor, wpimath.system.plant.DCMotor.NEO(1))
-        self.coral_wrist_sim.getAbsoluteEncoderSim().setPositionConversionFactor(360.0)
 
         self.up_wrist_limit = 125
         self.down_wrist_limit = CoralWristToPosition.pickup

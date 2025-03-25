@@ -7,7 +7,8 @@ import ntcore
 import wpimath.system.plant
 from generated.tuner_constants import TunerConstants
 
-SPEED = 0.5
+SPEED = 1.0
+AUTO_SPEED = 0.5
 
 # NOTE the shooter wheel handles both Coral and Algae, just reversed for one of them.
 class Shooter():

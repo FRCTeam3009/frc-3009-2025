@@ -232,10 +232,12 @@ class RobotContainer:
             subsystems.elevator.MoveElevatorCommand(self.elevator, lambda: self._operator_joystick.get_left_stick_y() * subsystems.elevator.SPEED)
         )
 
+        # Coral intake and Algae shoot
         commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis()*subsystems.shooter.SPEED)
         )
 
+        # Coral shoot and Algae intake
         commands2.button.Trigger(self._operator_joystick.is_right_trigger_pressed).whileTrue(
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )

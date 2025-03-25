@@ -115,14 +115,18 @@ class lineupCommand(commands2.Command):
     def initialize(self):
         tgtPose = self.limelight.target_poses[self.april_id]
         if (tgtPose is None or tgtPose.is_zero()):
+            print("PENGUINS - target was zero")
             self.command = subsystems.drive_robot_relative.DriveRobotRelativeCommand(self.drivetrain, wpimath.geometry.Transform2d(0, 0, 0), 0)
+            self.command.initialize()
             return
         targetpose = tgtPose.get_average_pose()
         targetpose = subsystems.limelight_positions.correct_target_pose(targetpose)
         x = targetpose.X() - APRIL_TAG_OFFSET
         y = targetpose.Y() - CORAL_OFFSET
         offset = wpimath.geometry.Transform2d(x, y, targetpose.rotation())
+        print("PENGUINS - good target pose")
         self.command = subsystems.drive_robot_relative.DriveRobotRelativeCommand(self.drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
+        self.command.initialize()
 
     
     def execute(self):

@@ -413,7 +413,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(moveElevatorToCoralPosition)
 
     # Shoot the coral out onto the post
-    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.SPEED).withTimeout(2.0)
+    shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.AUTO_SPEED).withTimeout(2.0)
 
      # drive backwards while firing
     driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(12), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3)
