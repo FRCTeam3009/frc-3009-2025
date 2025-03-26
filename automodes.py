@@ -285,7 +285,7 @@ def get_red_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerv
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 2, 0)
-    auto_commands = [AutoCommand(positions[27], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 11),
+    auto_commands = [AutoCommand(positions[11], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 11),
                      ]
     return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
 
@@ -298,7 +298,7 @@ def get_red_auto_2(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerv
                      shooter: subsystems.shooter.Shooter
                      ) -> commands2.Command:
     approx_start = Pose2d(10, 6, 0)
-    auto_commands = [AutoCommand(positions[28], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 9),
+    auto_commands = [AutoCommand(positions[9], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 9),
                      ]
     return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
 
@@ -311,7 +311,7 @@ def get_blue_auto_1(drivetrain: subsystems.command_swerve_drivetrain.CommandSwer
                      shooter: subsystems.shooter.Shooter
                      ) -> commands2.Command:
     approx_start = Pose2d(7.5, 6, 3.14)
-    auto_commands = [AutoCommand(positions[25], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 20),
+    auto_commands = [AutoCommand(positions[20], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 20),
                      ]
     return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
 
@@ -324,7 +324,7 @@ def get_blue_auto_2(drivetrain: subsystems.command_swerve_drivetrain.CommandSwer
                      shooter: subsystems.shooter.Shooter
                      ) -> commands2.Command:
     approx_start = Pose2d(7.5, 2, 3.14)
-    auto_commands = [AutoCommand(positions[26], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 22),
+    auto_commands = [AutoCommand(positions[22], AutoCommand.drive_place, subsystems.elevator.MoveElevatorToPosition.L2, subsystems.wrist.CoralWristToPosition.L2, 22),
                      ]
     return get_auto_command(drivetrain, front_limelight, back_limelight, elevator, wrist, approx_start, auto_commands, shooter)
 

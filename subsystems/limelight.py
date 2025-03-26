@@ -127,7 +127,6 @@ class lineupCommand(commands2.Command):
         print("PENGUINS - good target pose")
         self.command = subsystems.drive_robot_relative.DriveRobotRelativeCommand(self.drivetrain, offset, subsystems.drive_robot_relative.NORMAL_SPEED)
         self.command.initialize()
-
     
     def execute(self):
         self.command.execute()
