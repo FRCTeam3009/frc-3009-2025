@@ -7,7 +7,7 @@ import phoenix6.swerve
 
 FORWARD_OFFSET = wpimath.units.inchesToMeters(22.0) # inches away from the Coral posts
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(-3.0) # inches offset from center of AprilTag
-SMALL = wpimath.units.inchesToMeters(0.5)
+SMALL = wpimath.units.inchesToMeters(1)
 ONE_INCH = wpimath.units.inchesToMeters(1)
 TWO_INCHES = wpimath.units.inchesToMeters(2)
 

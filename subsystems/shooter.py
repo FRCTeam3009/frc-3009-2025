@@ -8,7 +8,7 @@ import wpimath.system.plant
 from generated.tuner_constants import TunerConstants
 
 SPEED = 1.0
-AUTO_SPEED = 0.5
+AUTO_SPEED = 0.1
 
 # NOTE the shooter wheel handles both Coral and Algae, just reversed for one of them.
 class Shooter(commands2.Subsystem):
@@ -26,6 +26,7 @@ class Shooter(commands2.Subsystem):
 
 class CoralOutCommand(commands2.Command):
     def __init__(self, shooter: Shooter, speed: typing.Callable[[], float]):
+        self.addRequirements(shooter)
         self.shooter = shooter
         self.speed = speed
         self.timer = wpilib.Timer()
@@ -55,6 +56,7 @@ class CoralOutCommand(commands2.Command):
 
 class HalfShot(commands2.Command):
     def __init__(self, shooter: Shooter):
+        self.addRequirements(shooter)
         self.shooter = shooter
         self.position = 0
     
