@@ -103,6 +103,7 @@ class RobotContainer:
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.wrist, subsystems.wrist.HoldPositionCommand(self.wrist))
+        commands2.CommandScheduler.getInstance().setDefaultCommand(self.shooter, subsystems.shooter.HoldShooter(self.shooter))
         
         self.front_limelight.update_command().schedule()
         self.back_limelight.update_command().schedule()
@@ -278,6 +279,9 @@ class RobotContainer:
         )
         self._operator_joystick.joystick.leftBumper().onTrue(
             subsystems.wrist.MoveIntake(self.wrist.intake_servo)
+        )
+        self._operator_joystick.joystick.rightBumper().onTrue(
+            subsystems.shooter.HalfShot(self.shooter)
         )
 
     

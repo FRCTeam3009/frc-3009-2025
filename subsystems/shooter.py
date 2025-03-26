@@ -11,7 +11,7 @@ SPEED = 1.0
 AUTO_SPEED = 0.5
 
 # NOTE the shooter wheel handles both Coral and Algae, just reversed for one of them.
-class Shooter():
+class Shooter(commands2.Subsystem):
     def __init__(self):
         commands2.CommandScheduler.registerSubsystem(self)
         self.motor = rev.SparkMax(TunerConstants.coral_algae_id, rev.SparkLowLevel.MotorType.kBrushless)
@@ -52,3 +52,29 @@ class CoralOutCommand(commands2.Command):
         self.shooter.move(0)
         self.timer.stop()
         self.timer.reset()
+
+class HalfShot(commands2.Command):
+    def __init__(self, shooter: Shooter):
+        self.shooter = shooter
+        self.position = 0
+    
+    def initialize(self):
+        self.position = self.shooter.motor.getEncoder().getPosition()
+
+    def execute(self):
+        self.shooter.motor.set(0.5)
+
+    def isFinished(self):
+        current_pose = self.shooter.motor.getEncoder().getPosition()
+        return current_pose >= self.position + 1.75
+    
+    def end(self, interrupted):
+        self.shooter.motor.set(0)
+
+class HoldShooter(commands2.Command):
+    def __init__(self, shooter: Shooter):
+        self.shooter = shooter
+        self.addRequirements(self.shooter)
+    
+    def execute(self):
+        self.shooter.motor.set(0)
