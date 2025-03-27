@@ -8,10 +8,12 @@ import typing
 import wpimath.controller
 import wpimath.trajectory
 import math
+import subsystems
 from wpimath.controller import PIDController, ArmFeedforward
 
 import wpimath.units
 from generated.tuner_constants import TunerConstants
+import subsystems.elevator
 
 HOLD_SPEED = 0.15
 LOW_SPEED = 0.075
@@ -145,14 +147,18 @@ class CoralWristToPosition(commands2.Command):
     L2 = 9.59
     L1 = 10.6 # Platform is almost straight forward
     pickup = 0.0 # Pickup is straight down
-    def __init__(self, wrist: Wrist, position: float):
+    elevator_limit = L1
+    def __init__(self, wrist: Wrist, position: float, elevator: subsystems.elevator.Elevator):
         self.wrist = wrist
         self.position = position
+        self.elevator = elevator
 
     def execute(self):
         self.wrist.position_to_hold = self.position
         if (self.wrist.position_to_hold < CoralWristToPosition.lower_limit):
             self.wrist.position_to_hold = CoralWristToPosition.lower_limit
+        elif(self.wrist.position_to_hold > CoralWristToPosition.elevator_limit and self.elevator.get_position() < subsystems.elevator.MoveElevatorToPosition.L3):
+            self.wrist.position_to_hold = CoralWristToPosition.elevator_limit
         elif (self.wrist.position_to_hold > CoralWristToPosition.upper_limit):
             self.wrist.position_to_hold = CoralWristToPosition.upper_limit
 

@@ -235,12 +235,12 @@ class RobotContainer:
 
         # Coral intake and Algae shoot
         commands2.button.Trigger(self._operator_joystick.is_left_trigger_pressed).whileTrue(
-            subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getLeftTriggerAxis()*subsystems.shooter.SPEED)
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getLeftTriggerAxis()*subsystems.shooter.SPEED)
         )
 
         # Coral shoot and Algae intake
         commands2.button.Trigger(self._operator_joystick.is_right_trigger_pressed).whileTrue(
-            subsystems.shooter.CoralOutCommand(self.shooter, lambda: self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
+            subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
             subsystems.wrist.IncrementWrist(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed())
@@ -252,7 +252,7 @@ class RobotContainer:
             subsystems.climber.MoveClimberCommand(self.climber, subsystems.climber.SPEED)
         )
         self._operator_joystick.joystick.a().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup)
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.elevator)
         )
 
         self.drivetrain.register_telemetry(
@@ -262,19 +262,19 @@ class RobotContainer:
             subsystems.drive_robot_relative.drive_forward_command(self.drivetrain, subsystems.drive_robot_relative.FORWARD_OFFSET, self.speed_limit)
         )
         self._operator_joystick.joystick.povLeft().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L1).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L1, self.elevator).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L1))
         )
         self._operator_joystick.joystick.y().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L3).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L3, self.elevator).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L3))
         )
         self._operator_joystick.joystick.x().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L2).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L2, self.elevator).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L2))
         )
         self._operator_joystick.joystick.b().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L4).alongWith(
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L4, self.elevator).alongWith(
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L4))
         )
         self._operator_joystick.joystick.leftBumper().onTrue(
@@ -303,7 +303,7 @@ class RobotContainer:
     
     def telemetry(self):
         self.climber.telemetry()
-        self.elevator.telemetry(self.wrist)
+        self.elevator.telemetry()
         self.wrist.telemetry()
         self.periodic_publish.set(self.periodic_timer.get())
         self.periodic_timer.reset()

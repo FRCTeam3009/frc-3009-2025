@@ -64,11 +64,11 @@ class HalfShot(commands2.Command):
         self.position = self.shooter.motor.getEncoder().getPosition()
 
     def execute(self):
-        self.shooter.motor.set(0.5)
+        self.shooter.motor.set(-0.5)
 
     def isFinished(self):
         current_pose = self.shooter.motor.getEncoder().getPosition()
-        return current_pose >= self.position + 1.75
+        return current_pose <= self.position - 0.1
     
     def end(self, interrupted):
         self.shooter.motor.set(0)
@@ -77,6 +77,16 @@ class HoldShooter(commands2.Command):
     def __init__(self, shooter: Shooter):
         self.shooter = shooter
         self.addRequirements(self.shooter)
+        self.position_to_hold = 0
+
+    def initialize(self):
+        self.position_to_hold = self.shooter.motor.getEncoder().getPosition()
     
     def execute(self):
-        self.shooter.motor.set(0)
+        pos = self.shooter.motor.getEncoder().getPosition()
+        if pos < self.position_to_hold:
+            self.shooter.motor.set(0.01)
+        elif pos > self.position_to_hold:
+            self.shooter.motor.set(-0.01)
+        else:
+            self.shooter.motor.set(0)

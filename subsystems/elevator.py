@@ -7,7 +7,6 @@ import wpilib.simulation
 import typing
 import ntcore
 import wpimath.units
-import subsystems.wrist
 from generated.tuner_constants import TunerConstants
 import wpimath.controller
 
@@ -90,12 +89,12 @@ class Elevator(commands2.Subsystem):
             rotations += self.get_position()
             self.main_motor.sim_state.set_raw_rotor_position(rotations)
 
-    def telemetry(self, wrist: subsystems.wrist.Wrist):
+    def telemetry(self):
         box = wpilib.Mechanism2d(29.5, 29.5)
         stationary_root = box.getRoot("Elevator", 15, 0.75)
 
         elevator_position = -1 * self.get_position() * 30/1000.0
-        wrist_rotation = wrist.coral_wrist_sim.getAbsoluteEncoderSim().getPosition()
+        wrist_rotation = 0.0 # removed, didn't work anyway
 
         platform_root = box.getRoot("Platform", 15, elevator_position)
         stationary_root.appendLigament(
