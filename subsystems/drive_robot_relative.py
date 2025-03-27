@@ -82,27 +82,15 @@ class DriveRobotRelativeCommand(commands2.Command):
         # forward
         if abs(diff.X()) < ONE_INCH:
             self.forward = 0.0
-        elif diff.X() > ONE_INCH:
-            self.forward = self.speed
-        elif diff.X() < -ONE_INCH:
-            self.forward = -1 * self.speed
 
         # horizontal
         if abs(diff.Y()) < ONE_INCH:
             self.horizontal = 0.0
-        elif diff.Y() > ONE_INCH:
-            self.horizontal = self.speed
-        elif diff.Y() < ONE_INCH:
-            self.horizontal = -1*self.speed
 
         # rotation
         r = diff.rotation().degrees()
         if abs(r) < TWO_DEGREES:
             self.rotation = 0.0
-        elif r < TWO_DEGREES:
-            self.rotation = -1*self.speed
-        elif r > TWO_DEGREES:
-            self.rotation = self.speed
         
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(self.forward).with_velocity_y(self.horizontal).with_rotational_rate(self.rotation)
         self.drive_cmd = self.drive_train.apply_request(drive_request)

@@ -163,7 +163,7 @@ def get_test_auto_offset_apriltag(drivetrain: subsystems.command_swerve_drivetra
                      wrist: subsystems.wrist.Wrist,
                      shooter: subsystems.shooter.Shooter,
                      ) -> commands2.Command:
-    return subsystems.limelight.lineupCommand(drivetrain, front_limelight, 19).withTimeout(3.0)
+    return subsystems.limelight.lineupCommand(drivetrain, front_limelight, 6).withTimeout(3.0)
 
 
 def get_test_auto_lineup_and_place(drivetrain: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain, 
