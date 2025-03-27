@@ -7,9 +7,9 @@ import phoenix6.swerve
 
 FORWARD_OFFSET = wpimath.units.inchesToMeters(22.0) # inches away from the Coral posts
 CORAL_POST_OFFSET = wpimath.units.inchesToMeters(-3.0) # inches offset from center of AprilTag
-SMALL = wpimath.units.inchesToMeters(1)
 ONE_INCH = wpimath.units.inchesToMeters(1)
 TWO_INCHES = wpimath.units.inchesToMeters(2)
+TWO_DEGREES = wpimath.units.degrees(2)
 
 ROBOT_RELATIVE = (
             phoenix6.swerve.requests.RobotCentric()
@@ -56,17 +56,18 @@ class DriveRobotRelativeCommand(commands2.Command):
         compare_y = self.offset.Y()
         compare_r = self.offset.rotation().degrees()
 
+        # Determine our speed for each direction.
         if compare_x > ONE_INCH:
             forward = self.speed
         elif compare_x < -ONE_INCH:
             forward = -1 * self.speed
-        if compare_y > SMALL:
+        if compare_y > ONE_INCH:
             horizontal = self.speed
-        elif compare_y < -SMALL:
+        elif compare_y < -ONE_INCH:
             horizontal = -1 * self.speed
-        if compare_r > 2:
+        if compare_r > TWO_DEGREES:
             rotation = self.speed
-        elif compare_r < -2:
+        elif compare_r < -TWO_DEGREES:
             rotation = -1 * self.speed
 
         self.forward = forward
@@ -77,12 +78,31 @@ class DriveRobotRelativeCommand(commands2.Command):
         current_pose = self.drive_train.get_state_copy().pose
         diff = self.end_pose - current_pose
 
+        # Check each direction separately to know if we're within range or need to change direction
+        # forward
         if abs(diff.X()) < ONE_INCH:
             self.forward = 0.0
-        if abs(diff.Y()) < SMALL:
+        elif diff.X() > ONE_INCH:
+            self.forward = self.speed
+        elif diff.X() < -ONE_INCH:
+            self.forward = -1 * self.speed
+
+        # horizontal
+        if abs(diff.Y()) < ONE_INCH:
             self.horizontal = 0.0
-        if abs(diff.rotation().degrees()) < 2:
+        elif diff.Y() > ONE_INCH:
+            self.horizontal = self.speed
+        elif diff.Y() < ONE_INCH:
+            self.horizontal = -1*self.speed
+
+        # rotation
+        r = diff.rotation().degrees()
+        if abs(r) < TWO_DEGREES:
             self.rotation = 0.0
+        elif r < TWO_DEGREES:
+            self.rotation = -1*self.speed
+        elif r > TWO_DEGREES:
+            self.rotation = self.speed
         
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(self.forward).with_velocity_y(self.horizontal).with_rotational_rate(self.rotation)
         self.drive_cmd = self.drive_train.apply_request(drive_request)
@@ -92,7 +112,8 @@ class DriveRobotRelativeCommand(commands2.Command):
         current_pose = self.drive_train.get_state_copy().pose
         diff = self.end_pose - current_pose
 
-        return abs(diff.X()) < ONE_INCH and abs(diff.Y()) < SMALL and abs(diff.rotation().degrees()) < 2
+        # Stop if all directions are within range
+        return abs(diff.X()) < ONE_INCH and abs(diff.Y()) < ONE_INCH and abs(diff.rotation().degrees()) < TWO_DEGREES
     
     def end(self, interrupted):
         drive_request = lambda: ROBOT_RELATIVE.with_velocity_x(0.0).with_velocity_y(0.0).with_rotational_rate(0.0)

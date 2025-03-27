@@ -9,7 +9,7 @@ import subsystems.limelight
 import subsystems.limelight_positions
 import json
 
-APRIL_TAG_OFFSET = 0.66
+APRIL_TAG_OFFSET = 0.56
 CORAL_OFFSET = 0
 
 class Limelight(object):

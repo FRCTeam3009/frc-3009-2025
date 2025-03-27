@@ -243,7 +243,7 @@ class RobotContainer:
             subsystems.shooter.CoralOutCommand(self.shooter, lambda: -1*self._operator_joystick.joystick.getRightTriggerAxis()*subsystems.shooter.SPEED)
         )
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
-            subsystems.wrist.IncrementWrist(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed())
+            subsystems.wrist.IncrementWrist(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed(), self.elevator)
         )
         self._operator_joystick.joystick.povUp().whileTrue(
             subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)

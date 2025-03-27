@@ -217,13 +217,16 @@ class MoveIntake(commands2.Command):
         return True
     
 class IncrementWrist(commands2.Command):
-    def __init__(self, wrist: Wrist, amt: typing.Callable[[], float]):
+    def __init__(self, wrist: Wrist, amt: typing.Callable[[], float], elevator: subsystems.elevator.Elevator):
         self.amount = amt
         self.wrist = wrist
+        self.elevator = elevator
 
     def execute(self):
         self.wrist.position_to_hold += self.amount()
         if (self.wrist.position_to_hold < CoralWristToPosition.lower_limit):
             self.wrist.position_to_hold = CoralWristToPosition.lower_limit
+        elif(self.wrist.position_to_hold > CoralWristToPosition.elevator_limit and self.elevator.get_position() < subsystems.elevator.MoveElevatorToPosition.L3):
+            self.wrist.position_to_hold = CoralWristToPosition.elevator_limit
         elif (self.wrist.position_to_hold > CoralWristToPosition.upper_limit):
             self.wrist.position_to_hold = CoralWristToPosition.upper_limit
