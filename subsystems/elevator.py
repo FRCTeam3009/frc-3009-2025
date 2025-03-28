@@ -131,8 +131,8 @@ class MoveElevatorToPosition(commands2.Command):
     upper_limit = 83
     lower_limit = -12
     L4 = upper_limit
-    L3 = 40
-    L2 = 11.5
+    L3 = 43
+    L2 = 12.0
     L1 = lower_limit
     pickup = 1.0
     auto_pose = 10

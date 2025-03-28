@@ -334,9 +334,10 @@ def place_coral(cmd: AutoCommand,
     shootCoral = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.AUTO_SPEED).withTimeout(2.0)
     cmds.addCommands(shootCoral)
 
-     # drive backwards
+     # drive backwards while shooting
+    shootCoral2 = subsystems.shooter.CoralOutCommand(shooter, lambda: subsystems.shooter.AUTO_SPEED).withTimeout(3.0)
     driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(16), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3.0)
-    cmds.addCommands(driveBackwards)
+    cmds.addCommands(driveBackwards.alongWith(shootCoral2))
    
 
     return cmds
