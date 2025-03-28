@@ -82,7 +82,7 @@ class RobotContainer:
         self.front_limelight = subsystems.limelight.Limelight("limelight-front", self.drivetrain)
         self.back_limelight = subsystems.limelight.Limelight("limelight-back", self.drivetrain)
 
-        # self.climber = subsystems.climber.Climber()
+        self.climber = subsystems.climber.Climber()
 
         self.auto_dashboard = automodes.AutoDashboard()
 
@@ -101,7 +101,7 @@ class RobotContainer:
         self.configureButtonBindings()
 
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.elevator, subsystems.elevator.HoldPositionCommand(self.elevator))
-        #commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
+        commands2.CommandScheduler.getInstance().setDefaultCommand(self.climber, subsystems.climber.MoveClimberCommand(self.climber, 0.0))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.wrist, subsystems.wrist.HoldPositionCommand(self.wrist))
         commands2.CommandScheduler.getInstance().setDefaultCommand(self.shooter, subsystems.shooter.HoldShooter(self.shooter))
         
@@ -245,12 +245,12 @@ class RobotContainer:
         commands2.button.Trigger(self._operator_joystick.is_right_stick_moved).whileTrue(
             subsystems.wrist.IncrementWrist(self.wrist, lambda: self._operator_joystick.get_right_stick_y() * self.wrist_speed(), self.elevator)
         )
-        # self._operator_joystick.joystick.povUp().whileTrue(
-        #     subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)
-        # )
-        # self._operator_joystick.joystick.povDown().whileTrue(
-        #     subsystems.climber.MoveClimberCommand(self.climber, subsystems.climber.SPEED)
-        # )
+        self._operator_joystick.joystick.povUp().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, subsystems.climber.SPEED)
+        )
+        self._operator_joystick.joystick.povDown().whileTrue(
+            subsystems.climber.MoveClimberCommand(self.climber, -1 * subsystems.climber.SPEED)
+        )
         self._operator_joystick.joystick.a().whileTrue(
             subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.pickup, self.elevator)
         )
@@ -302,7 +302,7 @@ class RobotContainer:
         return speed
     
     def telemetry(self):
-        #self.climber.telemetry()
+        self.climber.telemetry()
         self.elevator.telemetry()
         self.wrist.telemetry()
         self.periodic_publish.set(self.periodic_timer.get())

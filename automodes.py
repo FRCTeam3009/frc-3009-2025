@@ -324,7 +324,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(moveWrist)
 
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose).withTimeout(1.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose).withTimeout(1.5)
 
      # Line up to april tag
     aprilTag = subsystems.limelight.lineupCommand(drivetrain, limelight, cmd.april_tag_id).withTimeout(4.0)

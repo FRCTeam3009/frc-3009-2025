@@ -10,7 +10,7 @@ import subsystems.limelight_positions
 import json
 
 APRIL_TAG_OFFSET = 0.56
-CORAL_OFFSET = 0
+CORAL_OFFSET = wpimath.units.inchesToMeters(-2)
 
 class Limelight(object):
     def __init__(self, name: str, drive_train: subsystems.command_swerve_drivetrain.CommandSwerveDrivetrain):
