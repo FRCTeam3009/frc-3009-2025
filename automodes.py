@@ -320,14 +320,14 @@ def place_coral(cmd: AutoCommand,
     cmds = commands2.SequentialCommandGroup()
 
     # Move the wrist up to position
-    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose, elevator).withTimeout(2.0)
+    moveWrist = subsystems.wrist.CoralWristToPosition(wrist, cmd.wrist_pose, elevator).withTimeout(1.0)
     cmds.addCommands(moveWrist)
 
     # Move elevator up to position
-    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose).withTimeout(3.0)
+    moveElevatorToCoralPosition = subsystems.elevator.MoveElevatorToPosition(elevator, cmd.elevator_pose).withTimeout(1.0)
 
      # Line up to april tag
-    aprilTag = subsystems.limelight.lineupCommand(drivetrain, limelight, cmd.april_tag_id).withTimeout(3.0)
+    aprilTag = subsystems.limelight.lineupCommand(drivetrain, limelight, cmd.april_tag_id).withTimeout(4.0)
     cmds.addCommands(aprilTag.alongWith(moveElevatorToCoralPosition))
 
     # Shoot the coral out onto the post
@@ -335,7 +335,7 @@ def place_coral(cmd: AutoCommand,
     cmds.addCommands(shootCoral)
 
      # drive backwards
-    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(12), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3.0)
+    driveBackwards = subsystems.drive_robot_relative.drive_backward_command(drivetrain, wpimath.units.inchesToMeters(16), subsystems.drive_robot_relative.SLOW_SPEED).withTimeout(3.0)
     cmds.addCommands(driveBackwards)
    
 
@@ -442,8 +442,8 @@ def schedule_coral_place(cmd : AutoCommand,
                          wrist : subsystems.wrist.Wrist, 
                          shooter: subsystems.shooter.Shooter):
     cmds = commands2.SequentialCommandGroup()
-    cmds.addCommands(subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.auto_pose).withTimeout(2.0))
-    cmds.addCommands(WaitCommand(drivetrain).withTimeout(2.0)) # Wait to get April Tag position.
+    cmds.addCommands(subsystems.elevator.MoveElevatorToPosition(elevator, subsystems.elevator.MoveElevatorToPosition.auto_pose).withTimeout(0.5))
+    cmds.addCommands(WaitCommand(drivetrain).withTimeout(0.5)) # Wait to get April Tag position.
     cmds.addCommands(drive_to_pose(cmd))
     cmds.addCommands(place_coral(
         cmd,
