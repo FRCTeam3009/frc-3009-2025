@@ -274,8 +274,9 @@ class RobotContainer:
             subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L2))
         )
         self._operator_joystick.joystick.b().whileTrue(
-            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L4, self.elevator).alongWith(
-            subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L4))
+            #subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.L4, self.elevator).alongWith(
+            #subsystems.elevator.MoveElevatorToPosition(self.elevator, subsystems.elevator.MoveElevatorToPosition.L4))
+            subsystems.wrist.CoralWristToPosition(self.wrist, subsystems.wrist.CoralWristToPosition.ground_pickup, self.elevator)
         )
         self._operator_joystick.joystick.leftBumper().onTrue(
             subsystems.wrist.MoveIntake(self.wrist.intake_servo)
